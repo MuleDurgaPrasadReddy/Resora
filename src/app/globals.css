@@ -7,7 +7,11 @@
     @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-brand-500 selection:text-white;
   }
 
-  h1, h2, h3, h4, .font-heading {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-heading {
     font-family: 'Outfit', 'Inter', sans-serif;
   }
 }
@@ -50,4 +54,71 @@
 
 .glow-emerald {
   box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
+}
+
+/* Tactile 3D Button Elevation */
+.btn-3d-slate {
+  box-shadow: 0 6px 0 0 #0f172a, 0 10px 20px -5px rgba(0, 0, 0, 0.5);
+  transition: all 0.15s ease;
+}
+
+.btn-3d-slate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 0 #0f172a, 0 14px 24px -5px rgba(0, 0, 0, 0.6);
+}
+
+.btn-3d-slate:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 #0f172a, 0 4px 10px -2px rgba(0, 0, 0, 0.4);
+}
+
+.btn-3d-brand {
+  box-shadow: 0 6px 0 0 #1d4ed8, 0 10px 20px -5px rgba(37, 99, 235, 0.5);
+  transition: all 0.15s ease;
+}
+
+.btn-3d-brand:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 0 #1d4ed8, 0 14px 24px -5px rgba(37, 99, 235, 0.6);
+}
+
+.btn-3d-brand:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 #1d4ed8, 0 4px 10px -2px rgba(37, 99, 235, 0.4);
+}
+
+.btn-3d-amber {
+  box-shadow: 0 6px 0 0 #b45309, 0 10px 20px -5px rgba(245, 158, 11, 0.5);
+  transition: all 0.15s ease;
+}
+
+.btn-3d-amber:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 0 #b45309, 0 14px 24px -5px rgba(245, 158, 11, 0.6);
+}
+
+.btn-3d-amber:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 #b45309, 0 4px 10px -2px rgba(245, 158, 11, 0.4);
+}
+
+/* Audio Wave Staggered Bars */
+.audio-bar-1 {
+  animation: audio-wave 1.2s ease-in-out infinite;
+}
+
+.audio-bar-2 {
+  animation: audio-wave 1.2s ease-in-out 0.2s infinite;
+}
+
+.audio-bar-3 {
+  animation: audio-wave 1.2s ease-in-out 0.4s infinite;
+}
+
+.audio-bar-4 {
+  animation: audio-wave 1.2s ease-in-out 0.6s infinite;
+}
+
+.audio-bar-5 {
+  animation: audio-wave 1.2s ease-in-out 0.3s infinite;
 }

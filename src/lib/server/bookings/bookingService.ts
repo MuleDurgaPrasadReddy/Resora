@@ -2,6 +2,7 @@ import { Booking, Resource, User, WaitlistEntry, BookingStatus } from '@/types';
 import { INITIAL_BOOKINGS, MOCK_RESOURCES } from '@/lib/mockData';
 import { getAllResources, getResourceById } from '../resources/resourceService';
 import { getActiveMaintenanceWindows } from '../maintenance/maintenanceService';
+import { requireServerAuth } from '../auth/serverAuth';
 
 let memoryBookings: Booking[] = [...INITIAL_BOOKINGS];
 let memoryWaitlist: WaitlistEntry[] = [];
@@ -215,12 +216,29 @@ export async function getAllBookings(): Promise<Booking[]> {
 export async function updateBookingStatus(
   bookingId: string,
   status: BookingStatus,
-  noteOrReason?: string
+  noteOrReason?: string,
+  actor?: User
 ): Promise<Booking | undefined> {
   const index = memoryBookings.findIndex(b => b.id === bookingId);
   if (index === -1) return undefined;
 
   const target = memoryBookings[index];
+
+  // Server-side authorization check if actor is provided
+  if (actor) {
+    if (['APPROVED', 'REJECTED', 'CHANGES_REQUESTED'].includes(status)) {
+      if (actor.role !== 'FACULTY' && actor.role !== 'ADMIN') {
+        throw new Error(`FORBIDDEN: Only faculty or administrators can set booking status to ${status}.`);
+      }
+    }
+    if (status === 'CANCELLED') {
+      const isOwner = actor.id === target.userId || (actor.email && target.userId.includes(actor.email));
+      if (!isOwner && actor.role !== 'ADMIN') {
+        throw new Error('FORBIDDEN: You cannot cancel a booking belonging to another user.');
+      }
+    }
+  }
+
   const updated: Booking = {
     ...target,
     status,
@@ -238,6 +256,29 @@ export async function updateBookingStatus(
   }
 
   return updated;
+}
+
+export async function cancelBookingAction(bookingId: string): Promise<Booking | undefined> {
+  const auth = await requireServerAuth();
+  return updateBookingStatus(bookingId, 'CANCELLED', 'Cancelled by user', auth.user);
+}
+
+export async function createBookingAction(params: {
+  resourceId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  purpose: 'Class' | 'Project' | 'Research' | 'Hackathon' | 'Other';
+  additionalItems?: string[];
+  numberOfStudents?: number;
+}): Promise<{ success: boolean; booking?: Booking; error?: string; alternatives?: Resource[] }> {
+  const auth = await requireServerAuth();
+  return createBookingService({
+    ...params,
+    userId: auth.user.id,
+    userName: auth.user.name,
+    userRole: auth.user.role,
+  });
 }
 
 export async function joinWaitlistService(params: {

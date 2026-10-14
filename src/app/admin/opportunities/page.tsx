@@ -19,6 +19,7 @@ import {
   Sparkles,
   Trophy,
   Briefcase,
+  Award,
   Eye,
   Sliders,
   AlertCircle
@@ -27,7 +28,7 @@ import {
 export default function AdminOpportunitiesPage() {
   const { opportunities, addOpportunity, updateOpportunity, deleteOpportunity, auditLogs } = useResora();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'ALL' | 'HACKATHON' | 'INTERNSHIP'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'HACKATHON' | 'INTERNSHIP' | 'CERTIFICATION'>('ALL');
   
   // Modal State for Create / Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,30 +73,41 @@ export default function AdminOpportunitiesPage() {
     setFormType(type);
     setFormData({
       title: '',
-      organization: '',
+      organization: type === 'CERTIFICATION' ? 'Amazon Web Services' : '',
       type: type,
-      mode: 'Hybrid',
-      location: 'Pan-India',
+      mode: type === 'CERTIFICATION' ? 'Online Proctored' : 'Hybrid',
+      location: type === 'CERTIFICATION' ? 'Remote / Pearson VUE' : 'Pan-India',
       deadline: '30 Nov 2026',
-      stipendOrPrize: type === 'HACKATHON' ? '₹1,00,000 Cash Prize' : '₹50,000 / month',
+      stipendOrPrize: type === 'HACKATHON' ? '₹1,00,000 Cash Prize' : type === 'INTERNSHIP' ? '₹50,000 / month' : '100% Campus Voucher',
       stipend: type === 'INTERNSHIP' ? '₹50,000 / month' : '',
       prizePool: type === 'HACKATHON' ? '₹1,00,000 Cash Prize' : '',
       teamSize: type === 'HACKATHON' ? '1 - 4 Members' : '',
       duration: type === 'INTERNSHIP' ? '8 Weeks' : '',
       domain: type === 'INTERNSHIP' ? 'Software Engineering' : '',
+      certificationProvider: type === 'CERTIFICATION' ? 'AWS' : '',
+      certificationLevel: type === 'CERTIFICATION' ? 'Associate' : '',
+      examCode: type === 'CERTIFICATION' ? 'SAA-C03' : '',
+      examDurationMinutes: type === 'CERTIFICATION' ? 130 : undefined,
+      passingScore: type === 'CERTIFICATION' ? '720 / 1000' : '',
+      voucherDiscount: type === 'CERTIFICATION' ? '100% Campus Sponsored Voucher' : '',
+      voucherCode: type === 'CERTIFICATION' ? 'RESORA-AWS-EDU26' : '',
+      examFee: type === 'CERTIFICATION' ? '$150 (Waived for Resora Students)' : '',
+      credentialValidity: type === 'CERTIFICATION' ? '3 Years' : '',
+      curriculumSyllabusUrl: type === 'CERTIFICATION' ? 'https://aws.amazon.com/certification/' : '',
+      academicCreditEquivalency: type === 'CERTIFICATION' ? '3 Open Elective Credits (Sem 7/8)' : '',
       eligibility: 'B.Tech / B.E. / M.Tech Students',
-      skillsRequired: ['React', 'Node.js', 'Python'],
-      tags: [type === 'HACKATHON' ? 'Hackathon' : 'Internship', 'Official'],
-      officialWebsiteUrl: 'https://example.com',
-      applicationUrl: 'https://example.com/apply',
+      skillsRequired: type === 'CERTIFICATION' ? ['AWS IAM', 'VPC', 'EC2', 'S3'] : ['React', 'Node.js', 'Python'],
+      tags: [type === 'HACKATHON' ? 'Hackathon' : type === 'CERTIFICATION' ? 'Certification' : 'Internship', 'Official'],
+      officialWebsiteUrl: type === 'CERTIFICATION' ? 'https://aws.amazon.com/certification/' : 'https://example.com',
+      applicationUrl: type === 'CERTIFICATION' ? 'https://www.aws.training/certification' : 'https://example.com/apply',
       source: 'Admin Verified Portal',
       isVerified: true,
       isFeatured: false,
       registrationStatus: 'OPEN',
-      description: 'Official verified opportunity published by campus administration.',
+      description: type === 'CERTIFICATION' ? 'Official industry certification with campus voucher subsidy.' : 'Official verified opportunity published by campus administration.',
     });
-    setSkillsInput('React, Node.js, Python');
-    setTagsInput(type === 'HACKATHON' ? 'Hackathon, Official' : 'Internship, Official');
+    setSkillsInput(type === 'CERTIFICATION' ? 'AWS IAM, VPC, EC2, S3' : 'React, Node.js, Python');
+    setTagsInput(type === 'HACKATHON' ? 'Hackathon, Official' : type === 'CERTIFICATION' ? 'Certification, Cloud, Official' : 'Internship, Official');
     setIsModalOpen(true);
   };
 
@@ -183,6 +195,14 @@ export default function AdminOpportunitiesPage() {
                 <Briefcase className="w-4 h-4" />
                 <span>Create Internship</span>
               </button>
+
+              <button
+                onClick={() => openCreateModal('CERTIFICATION')}
+                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-600/20 transition-all"
+              >
+                <Award className="w-4 h-4" />
+                <span>Create Certification</span>
+              </button>
             </div>
           </div>
 
@@ -220,7 +240,7 @@ export default function AdminOpportunitiesPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              {(['ALL', 'HACKATHON', 'INTERNSHIP'] as const).map(t => (
+              {(['ALL', 'HACKATHON', 'INTERNSHIP', 'CERTIFICATION'] as const).map(t => (
                 <button
                   key={t}
                   onClick={() => setFilterType(t)}
@@ -269,10 +289,19 @@ export default function AdminOpportunitiesPage() {
 
                       <td className="p-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
-                          opp.type === 'HACKATHON' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'
+                          opp.type === 'HACKATHON' 
+                            ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                            : opp.type === 'CERTIFICATION'
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-blue-100 text-blue-700 border-blue-200'
                         }`}>
                           {opp.type}
                         </span>
+                        {opp.type === 'CERTIFICATION' && opp.examCode && (
+                          <span className="ml-1 text-[10px] font-mono font-bold text-slate-500">
+                            {opp.examCode}
+                          </span>
+                        )}
                       </td>
 
                       <td className="p-4 max-w-xs">
@@ -385,7 +414,7 @@ export default function AdminOpportunitiesPage() {
             <form onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
               
               {/* Type Switcher */}
-              <div className="flex items-center space-x-3 bg-slate-100 p-1.5 rounded-2xl w-fit">
+              <div className="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl w-fit flex-wrap gap-y-1">
                 <button
                   type="button"
                   onClick={() => setFormType('HACKATHON')}
@@ -403,6 +432,15 @@ export default function AdminOpportunitiesPage() {
                   }`}
                 >
                   Internship Format
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormType('CERTIFICATION')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    formType === 'CERTIFICATION' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600'
+                  }`}
+                >
+                  Certification Format
                 </button>
               </div>
 
@@ -510,7 +548,127 @@ export default function AdminOpportunitiesPage() {
                 </div>
               </div>
 
-              {formType === 'HACKATHON' ? (
+              {formType === 'CERTIFICATION' ? (
+                <div className="space-y-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-amber-600" />
+                    <h4 className="font-bold text-amber-950 text-xs">Certification Specifications & Campus Voucher</h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Provider</label>
+                      <input
+                        type="text"
+                        value={formData.certificationProvider || ''}
+                        onChange={e => setFormData({ ...formData, certificationProvider: e.target.value })}
+                        placeholder="e.g. AWS / Google Cloud"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Exam Code</label>
+                      <input
+                        type="text"
+                        value={formData.examCode || ''}
+                        onChange={e => setFormData({ ...formData, examCode: e.target.value })}
+                        placeholder="e.g. SAA-C03 / CKA"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Certification Level</label>
+                      <select
+                        value={formData.certificationLevel || 'Associate'}
+                        onChange={e => setFormData({ ...formData, certificationLevel: e.target.value })}
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs font-semibold"
+                      >
+                        <option value="Foundational">Foundational</option>
+                        <option value="Associate">Associate</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Specialty">Specialty</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Exam Fee & Subsidy</label>
+                      <input
+                        type="text"
+                        value={formData.examFee || ''}
+                        onChange={e => setFormData({ ...formData, examFee: e.target.value })}
+                        placeholder="e.g. $150 (Free for Students)"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs text-emerald-700 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Voucher Code</label>
+                      <input
+                        type="text"
+                        value={formData.voucherCode || ''}
+                        onChange={e => setFormData({ ...formData, voucherCode: e.target.value })}
+                        placeholder="e.g. RESORA-AWS-EDU26"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white font-mono text-xs font-bold text-indigo-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Voucher Discount</label>
+                      <input
+                        type="text"
+                        value={formData.voucherDiscount || ''}
+                        onChange={e => setFormData({ ...formData, voucherDiscount: e.target.value })}
+                        placeholder="e.g. 100% Campus Voucher"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Exam Duration (Mins)</label>
+                      <input
+                        type="number"
+                        value={formData.examDurationMinutes || ''}
+                        onChange={e => setFormData({ ...formData, examDurationMinutes: parseInt(e.target.value) || undefined })}
+                        placeholder="e.g. 130"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Passing Score</label>
+                      <input
+                        type="text"
+                        value={formData.passingScore || ''}
+                        onChange={e => setFormData({ ...formData, passingScore: e.target.value })}
+                        placeholder="e.g. 720 / 1000"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Academic Credit Mapping</label>
+                      <input
+                        type="text"
+                        value={formData.academicCreditEquivalency || ''}
+                        onChange={e => setFormData({ ...formData, academicCreditEquivalency: e.target.value })}
+                        placeholder="e.g. 3 Open Elective Credits"
+                        className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Official Curriculum / Syllabus Guide URL</label>
+                    <input
+                      type="url"
+                      value={formData.curriculumSyllabusUrl || ''}
+                      onChange={e => setFormData({ ...formData, curriculumSyllabusUrl: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full p-2 border border-slate-200 rounded-xl bg-white text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              ) : formType === 'HACKATHON' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="font-bold text-slate-800 block mb-1">Prize Pool</label>

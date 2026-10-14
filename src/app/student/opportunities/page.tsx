@@ -23,7 +23,15 @@ import {
   CheckCircle2,
   Award,
   Users,
-  Filter
+  Filter,
+  Copy,
+  Check,
+  Clock,
+  FileText,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Layers
 } from 'lucide-react';
 
 // Helper for URL validation
@@ -81,18 +89,31 @@ function getDeadlineInfo(deadlineStr?: string, regStatus?: string) {
 export default function StudentOpportunitiesPage() {
   const { currentUser, opportunities, toggleSaveOpportunity, applyToOpportunity } = useResora();
 
-  // Navigation & Filter State (Section 6: [ All ] [ Hackathons ] [ Internships ] [ Faculty Recommended ])
-  const [activeTab, setActiveTab] = useState<'All' | 'HACKATHON' | 'INTERNSHIP' | 'RECOMMENDED'>('All');
+  // Navigation & Filter State (Section 6: [ All ] [ Hackathons ] [ Internships ] [ Certifications ] [ Faculty Recommended ])
+  const [activeTab, setActiveTab] = useState<'All' | 'HACKATHON' | 'INTERNSHIP' | 'CERTIFICATION' | 'RECOMMENDED'>('All');
+  const [certSubFilter, setCertSubFilter] = useState<'ALL' | 'COURSES' | 'EXAMS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('All');
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'deadline' | 'featured' | 'newest'>('featured');
+  const [copiedVoucherId, setCopiedVoucherId] = useState<string | null>(null);
 
   // Demo Academic Year Selector for Testing (Requirement #19: Student A = 3rd Year, Student B = 2nd Year, Student C = 4th Year)
   const [simulatedAcademicYear, setSimulatedAcademicYear] = useState<number>(currentUser.academicYear || 3);
 
   // Selected Opportunity for Detail Modal
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [expandedModuleIndex, setExpandedModuleIndex] = useState<number | null>(0);
+
+  // Copy voucher handler
+  const handleCopyVoucher = (e: React.MouseEvent, code: string, id: string) => {
+    e.stopPropagation();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+    }
+    setCopiedVoucherId(id);
+    setTimeout(() => setCopiedVoucherId(null), 3000);
+  };
 
   // Active student academic year label
   const studentYearLabel = `${simulatedAcademicYear}${simulatedAcademicYear === 1 ? 'st' : simulatedAcademicYear === 2 ? 'nd' : simulatedAcademicYear === 3 ? 'rd' : 'th'} Year`;
@@ -127,6 +148,11 @@ export default function StudentOpportunitiesPage() {
       // Filter by Active Tab
       if (activeTab === 'HACKATHON' && opp.type !== 'HACKATHON') return false;
       if (activeTab === 'INTERNSHIP' && opp.type !== 'INTERNSHIP') return false;
+      if (activeTab === 'CERTIFICATION') {
+        if (opp.type !== 'CERTIFICATION') return false;
+        if (certSubFilter === 'COURSES' && !opp.isCourseSeries) return false;
+        if (certSubFilter === 'EXAMS' && opp.isCourseSeries) return false;
+      }
       if (activeTab === 'RECOMMENDED' && !hasMatchingRec) return false;
 
       if (showSavedOnly && !opp.saved) return false;
@@ -142,8 +168,10 @@ export default function StudentOpportunitiesPage() {
         const matchOrg = (opp.organization || opp.organizer || '').toLowerCase().includes(q);
         const matchDesc = (opp.description || opp.shortDescription || '').toLowerCase().includes(q);
         const matchTags = (opp.tags || []).some(t => (t || '').toLowerCase().includes(q));
+        const matchInstructor = (opp.instructorName || '').toLowerCase().includes(q);
+        const matchPlatform = (opp.learningPlatform || '').toLowerCase().includes(q);
 
-        if (!(matchTitle || matchOrg || matchDesc || matchTags)) {
+        if (!(matchTitle || matchOrg || matchDesc || matchTags || matchInstructor || matchPlatform)) {
           return false;
         }
       }
@@ -162,7 +190,20 @@ export default function StudentOpportunitiesPage() {
       }
       return 0;
     });
-  }, [opportunities, simulatedAcademicYear, activeTab, showSavedOnly, selectedMode, searchQuery, sortBy]);
+  }, [opportunities, simulatedAcademicYear, activeTab, certSubFilter, showSavedOnly, selectedMode, searchQuery, sortBy]);
+
+  // Certifications total counters
+  const certificationsCount = useMemo(() => {
+    return (opportunities || []).filter(opp => opp.type === 'CERTIFICATION').length;
+  }, [opportunities]);
+
+  const certCoursesCount = useMemo(() => {
+    return (opportunities || []).filter(opp => opp.type === 'CERTIFICATION' && opp.isCourseSeries).length;
+  }, [opportunities]);
+
+  const certExamsCount = useMemo(() => {
+    return (opportunities || []).filter(opp => opp.type === 'CERTIFICATION' && !opp.isCourseSeries).length;
+  }, [opportunities]);
 
   // Separate Faculty Recommended section for top banner
   const facultyRecommendedList = useMemo(() => {
@@ -261,6 +302,22 @@ export default function StudentOpportunitiesPage() {
                 </button>
 
                 <button
+                  onClick={() => { setActiveTab('CERTIFICATION'); setShowSavedOnly(false); }}
+                  className={`px-5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${activeTab === 'CERTIFICATION' && !showSavedOnly
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  Certifications
+                  {certificationsCount > 0 && (
+                    <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-1.5 py-0.2 rounded-full ml-1">
+                      {certificationsCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
                   onClick={() => { setActiveTab('RECOMMENDED'); setShowSavedOnly(false); }}
                   className={`px-5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${activeTab === 'RECOMMENDED' && !showSavedOnly
                     ? 'bg-emerald-600 text-white shadow-md'
@@ -290,6 +347,52 @@ export default function StudentOpportunitiesPage() {
                 </button>
               </div>
             </div>
+
+            {/* Certification Specialized Sub-filter */}
+            {activeTab === 'CERTIFICATION' && (
+              <div className="bg-gradient-to-r from-amber-50/70 via-indigo-50/50 to-emerald-50/60 p-2.5 rounded-2xl border border-amber-200/80 flex items-center justify-between flex-wrap gap-2 shadow-2xs">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-extrabold text-slate-700 mr-1 flex items-center gap-1">
+                    <Filter className="w-3.5 h-3.5 text-amber-600" />
+                    Certification Tracks:
+                  </span>
+                  <button
+                    onClick={() => setCertSubFilter('ALL')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${certSubFilter === 'ALL'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-white text-slate-700 hover:bg-amber-100/60 border border-slate-200/80'
+                      }`}
+                  >
+                    All ({certificationsCount})
+                  </button>
+                  <button
+                    onClick={() => setCertSubFilter('COURSES')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${certSubFilter === 'COURSES'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200'
+                      }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Certification Courses & Specializations ({certCoursesCount})
+                  </button>
+                  <button
+                    onClick={() => setCertSubFilter('EXAMS')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${certSubFilter === 'EXAMS'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
+                      }`}
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    Industry Exams & Vouchers ({certExamsCount})
+                  </button>
+                </div>
+
+                <div className="text-[11px] font-semibold text-slate-500 hidden lg:flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>100% Institutional Campus Fee Waivers & Vouchers Available</span>
+                </div>
+              </div>
+            )}
 
             {/* Search Bar */}
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-soft flex flex-wrap items-center justify-between gap-3">
@@ -351,6 +454,7 @@ export default function StudentOpportunitiesPage() {
                       r => r.targetYear === simulatedAcademicYear && r.isActive
                     );
                     const isHackathon = opp.type === 'HACKATHON';
+                    const isCertification = opp.type === 'CERTIFICATION';
 
                     return (
                       <div
@@ -364,10 +468,20 @@ export default function StudentOpportunitiesPage() {
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               ✓ Faculty Recommended
                             </span>
-                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${isHackathon ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'
-                              }`}>
+                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${
+                              isHackathon 
+                                ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                                : isCertification
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-blue-100 text-blue-700 border-blue-200'
+                            }`}>
                               {opp.type}
                             </span>
+                            {isCertification && opp.certificationLevel && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {opp.certificationLevel}
+                              </span>
+                            )}
                           </div>
 
                           <span className="text-[11px] font-bold text-slate-500">
@@ -375,7 +489,7 @@ export default function StudentOpportunitiesPage() {
                           </span>
                         </div>
 
-                        {/* Recommendation Banner details (Requirement #7: Recommended by Dr. S. Rao / For 3rd Year Students) */}
+                        {/* Recommendation Banner details */}
                         <div className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200/80 space-y-1 text-xs">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <p className="font-bold text-emerald-950">
@@ -398,21 +512,92 @@ export default function StudentOpportunitiesPage() {
                             {opp.title}
                           </h3>
                           <p className="text-xs text-slate-500 font-semibold">
-                            {opp.organization || opp.organizer} · Mode: {opp.mode || opp.workMode || 'Hybrid'}
+                            {opp.organization || opp.organizer} · Mode: {opp.mode || opp.workMode || 'Online'}
                           </p>
                           <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                             {opp.description}
                           </p>
+
+                          {/* Certification Specific Info */}
+                          {isCertification && (
+                            <div className="space-y-2 pt-1">
+                              {opp.isCourseSeries ? (
+                                <div className="space-y-2">
+                                  <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-purple-50/80 p-3 rounded-2xl border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                                        👨‍🏫
+                                      </div>
+                                      <div>
+                                        <span className="text-[9px] uppercase font-bold text-indigo-700 block">Lead Instructor</span>
+                                        <span className="font-extrabold text-slate-900 text-xs">{opp.instructorName}</span>
+                                        <span className="text-[10px] text-slate-500 block truncate max-w-xs">{opp.instructorTitle}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-[10px] font-extrabold bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700 flex items-center gap-1">
+                                        <Globe className="w-3 h-3 text-blue-600" /> {opp.learningPlatform}
+                                      </span>
+                                      <span className="text-[10px] font-extrabold bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700 flex items-center gap-1">
+                                        <BookOpen className="w-3 h-3 text-purple-600" /> {opp.totalCoursesCount || opp.courseModules?.length || 5} Modules
+                                      </span>
+                                      <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                        <Users className="w-3 h-3 text-emerald-600" /> {opp.enrolledStudentsCount || 340} Enrolled
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {opp.capstoneProject && (
+                                    <div className="bg-amber-50/80 border border-amber-200 p-2 rounded-xl text-xs flex items-center gap-2">
+                                      <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                      <span className="text-[11px] font-medium text-amber-950 truncate">
+                                        <strong>Capstone Project:</strong> {opp.capstoneProject}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-semibold text-slate-600 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
+                                  <div><span className="text-slate-400 block text-[9px] uppercase font-bold">Exam Code</span><span className="font-mono font-bold text-slate-900">{opp.examCode || 'N/A'}</span></div>
+                                  <div><span className="text-slate-400 block text-[9px] uppercase font-bold">Duration</span><span>{opp.examDurationMinutes ? `${opp.examDurationMinutes} Mins` : '120 Mins'}</span></div>
+                                  <div><span className="text-slate-400 block text-[9px] uppercase font-bold">Passing Score</span><span className="text-emerald-700 font-bold">{opp.passingScore || 'Pass'}</span></div>
+                                  <div><span className="text-slate-400 block text-[9px] uppercase font-bold">Fee / Subsidy</span><span className="font-bold text-slate-900">{opp.examFee || 'Free'}</span></div>
+                                </div>
+                              )}
+
+                              {opp.voucherCode && (
+                                <div className="flex items-center gap-2 text-xs pt-0.5">
+                                  <span className="text-[10px] font-bold uppercase text-slate-400">Campus Voucher Code:</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleCopyVoucher(e, opp.voucherCode!, opp.id)}
+                                    className="font-mono font-extrabold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-0.5 rounded-md flex items-center gap-1.5 transition-all"
+                                    title="Click to copy voucher code"
+                                  >
+                                    <span>{opp.voucherCode}</span>
+                                    {copiedVoucherId === opp.id ? (
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="w-3 h-3 text-indigo-500" />
+                                    )}
+                                    <span className="text-[10px] font-bold text-indigo-600">
+                                      {copiedVoucherId === opp.id ? 'Copied!' : 'Copy'}
+                                    </span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Actions (Requirement #6, #20) */}
+                        {/* Actions */}
                         <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                           <button
                             type="button"
                             onClick={() => setSelectedOpportunity(opp)}
                             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs transition-colors"
                           >
-                            View Details
+                            {isCertification && opp.isCourseSeries ? 'Explore Curriculum' : 'View Details'}
                           </button>
 
                           <div className="flex items-center space-x-2">
@@ -425,7 +610,6 @@ export default function StudentOpportunitiesPage() {
                               <Bookmark className={`w-4 h-4 ${opp.saved ? 'fill-amber-500' : ''}`} />
                             </button>
 
-                            {/* External Application Link (Requirement #20: <a href target="_blank">) */}
                             {isValidExternalUrl(opp.applicationUrl || opp.officialWebsiteUrl) ? (
                               <a
                                 href={(opp.applicationUrl || opp.officialWebsiteUrl)!.trim()}
@@ -434,11 +618,11 @@ export default function StudentOpportunitiesPage() {
                                 onClick={(e) => handleApplyClick(e, opp)}
                                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-1.5 transition-all"
                               >
-                                <span>Apply Now →</span>
+                                <span>{isCertification ? (opp.isCourseSeries ? 'Enroll Course Series →' : 'Register Exam →') : 'Apply Now →'}</span>
                               </a>
                             ) : (
                               <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold cursor-not-allowed">
-                                Application Link
+                                Register
                               </span>
                             )}
                           </div>
@@ -453,11 +637,15 @@ export default function StudentOpportunitiesPage() {
 
           {/* ==================================================
               4. ALL OPPORTUNITIES SECTION
-             ================================================== */}
+          ================================================== */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold text-slate-900 uppercase tracking-wider font-heading">
-                {activeTab === 'RECOMMENDED' ? 'FACULTY RECOMMENDED OPPORTUNITIES' : 'ALL OPPORTUNITIES'}
+                {activeTab === 'RECOMMENDED' 
+                  ? 'FACULTY RECOMMENDED OPPORTUNITIES' 
+                  : activeTab === 'CERTIFICATION'
+                  ? 'INDUSTRY CERTIFICATIONS & VOUCHERS'
+                  : 'ALL OPPORTUNITIES'}
               </h3>
               <span className="text-xs text-slate-500 font-medium">
                 {visibleOpportunities.length} Available
@@ -476,6 +664,7 @@ export default function StudentOpportunitiesPage() {
               <div className="space-y-4">
                 {visibleOpportunities.map(opp => {
                   const isHackathon = opp.type === 'HACKATHON';
+                  const isCertification = opp.type === 'CERTIFICATION';
                   const deadlineInfo = getDeadlineInfo(opp.deadline, opp.registrationStatus);
                   const isFacultyRec = opp.recommendations?.some(
                     r => r.targetYear === simulatedAcademicYear && r.isActive
@@ -489,17 +678,41 @@ export default function StudentOpportunitiesPage() {
                     >
                       <div className="flex items-start space-x-4 flex-1 min-w-0 w-full">
                         <img
-                          src={opp.logoUrl || (isHackathon ? 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=120' : 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120')}
+                          src={opp.logoUrl || (isHackathon ? 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=120' : isCertification ? 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=120' : 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120')}
                           alt={opp.organization}
                           className="w-14 h-14 rounded-2xl object-cover border border-slate-200/80 shadow-xs shrink-0"
                         />
 
                         <div className="space-y-2 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${isHackathon ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200'
-                              }`}>
+                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${
+                              isHackathon 
+                                ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                                : isCertification
+                                ? 'bg-amber-100 text-amber-800 border-amber-300 flex items-center gap-1'
+                                : 'bg-blue-100 text-blue-700 border-blue-200'
+                            }`}>
+                              {isCertification && <Award className="w-3 h-3 text-amber-700" />}
                               {opp.type}
                             </span>
+
+                            {isCertification && opp.certificationLevel && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {opp.certificationLevel}
+                              </span>
+                            )}
+
+                            {isCertification && opp.voucherDiscount && (
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                🎁 {opp.voucherDiscount}
+                              </span>
+                            )}
+
+                            {isCertification && opp.academicCreditEquivalency && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                🎓 {opp.academicCreditEquivalency}
+                              </span>
+                            )}
 
                             {isFacultyRec && (
                               <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
@@ -518,13 +731,101 @@ export default function StudentOpportunitiesPage() {
                               {opp.title}
                             </h3>
                             <p className="text-xs text-slate-500 font-semibold">
-                              {opp.organization || opp.organizer} · Mode: {opp.mode || opp.workMode || 'Hybrid'}
+                              {opp.organization || opp.organizer} · Mode: {opp.mode || opp.workMode || 'Online'}
                             </p>
                           </div>
 
                           <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                             {opp.description}
                           </p>
+
+                          {/* Certification Specific Info Strip */}
+                          {isCertification && (
+                            <div className="space-y-2.5 pt-1">
+                              {opp.isCourseSeries ? (
+                                <div className="space-y-2">
+                                  <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-purple-50/80 p-3 rounded-2xl border border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                                        👨‍🏫
+                                      </div>
+                                      <div>
+                                        <span className="text-[9px] uppercase font-bold text-indigo-700 block">Lead Instructor</span>
+                                        <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{opp.instructorName}</span>
+                                        <span className="text-[10px] text-slate-500 block truncate max-w-sm">{opp.instructorTitle}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-[11px] font-extrabold bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800 flex items-center gap-1 shadow-2xs">
+                                        <Globe className="w-3.5 h-3.5 text-blue-600" /> {opp.learningPlatform}
+                                      </span>
+                                      <span className="text-[11px] font-extrabold bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800 flex items-center gap-1 shadow-2xs">
+                                        <BookOpen className="w-3.5 h-3.5 text-purple-600" /> {opp.totalCoursesCount || opp.courseModules?.length || 5} Course Modules
+                                      </span>
+                                      <span className="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-2xs">
+                                        <Users className="w-3.5 h-3.5 text-emerald-600" /> {opp.enrolledStudentsCount || 340} Campus Learners
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {opp.capstoneProject && (
+                                    <div className="bg-amber-50/80 border border-amber-200 p-2.5 rounded-xl text-xs flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                                        <span className="text-[11px] font-semibold text-amber-950 truncate">
+                                          <strong>Capstone Project:</strong> {opp.capstoneProject}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded shrink-0">
+                                        Capstone Graded
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-semibold text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+                                  <div>
+                                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Exam Code</span>
+                                    <span className="font-mono font-bold text-slate-900">{opp.examCode || 'N/A'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Duration</span>
+                                    <span>{opp.examDurationMinutes ? `${opp.examDurationMinutes} Mins` : '120 Mins'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Passing Score</span>
+                                    <span className="text-emerald-700 font-bold">{opp.passingScore || 'Pass'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Fee / Voucher</span>
+                                    <span className="font-bold text-slate-900">{opp.examFee || 'Free'}</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {opp.voucherCode && (
+                                <div className="flex items-center gap-2 pt-0.5 text-xs">
+                                  <span className="text-[10px] font-bold uppercase text-slate-400">Campus Voucher Code:</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleCopyVoucher(e, opp.voucherCode!, opp.id)}
+                                    className="font-mono font-extrabold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-0.5 rounded-md flex items-center gap-1.5 transition-all shadow-2xs"
+                                    title="Click to copy voucher code"
+                                  >
+                                    <span>{opp.voucherCode}</span>
+                                    {copiedVoucherId === opp.id ? (
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="w-3 h-3 text-indigo-500" />
+                                    )}
+                                    <span className="text-[10px] font-bold text-indigo-600">
+                                      {copiedVoucherId === opp.id ? 'Copied!' : 'Copy'}
+                                    </span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -546,7 +847,7 @@ export default function StudentOpportunitiesPage() {
                             onClick={() => setSelectedOpportunity(opp)}
                             className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
                           >
-                            View Details
+                            {isCertification && opp.isCourseSeries ? 'Explore Curriculum' : 'View Details'}
                           </button>
 
                           {isValidExternalUrl(opp.applicationUrl || opp.officialWebsiteUrl) ? (
@@ -557,11 +858,11 @@ export default function StudentOpportunitiesPage() {
                               onClick={(e) => handleApplyClick(e, opp)}
                               className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 transition-all"
                             >
-                              <span>Apply Now →</span>
+                              <span>{isCertification ? (opp.isCourseSeries ? 'Enroll Course Series →' : 'Register Exam →') : 'Apply Now →'}</span>
                             </a>
                           ) : (
                             <span className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
-                              Apply Now
+                              Register
                             </span>
                           )}
                         </div>
@@ -601,7 +902,7 @@ export default function StudentOpportunitiesPage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto flex-1 text-xs text-slate-700">
+            <div className="p-6 space-y-5 overflow-y-auto flex-1 text-xs text-slate-700">
               {/* If Faculty Recommended, show details */}
               {selectedOpportunity.recommendations?.some(r => r.targetYear === simulatedAcademicYear && r.isActive) && (
                 <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 space-y-1">
@@ -615,24 +916,303 @@ export default function StudentOpportunitiesPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <h3 className="font-bold text-slate-900 text-sm">Description</h3>
+              {/* Description */}
+              <div className="space-y-1.5">
+                <h3 className="font-extrabold text-slate-900 text-sm">Program Overview</h3>
                 <p className="text-slate-600 leading-relaxed">{selectedOpportunity.description}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <div>
-                  <span className="text-slate-400 text-[10px] font-bold block uppercase">Deadline</span>
-                  <span className="font-bold text-slate-800">{selectedOpportunity.deadline}</span>
+              {/* CERTIFICATION SPECIFIC FIELDS */}
+              {selectedOpportunity.type === 'CERTIFICATION' ? (
+                <div className="space-y-4 pt-1">
+                  {/* If Course Series: Render Lead Instructor & Platform Card */}
+                  {selectedOpportunity.isCourseSeries && (
+                    <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/80 to-purple-50/90 p-4 rounded-2xl border border-indigo-200/80 space-y-3 shadow-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-2xl shadow-sm shrink-0">
+                            👨‍🏫
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-bold text-indigo-700 block">Lead Course Instructor</span>
+                            <h4 className="text-sm font-extrabold text-slate-900">{selectedOpportunity.instructorName}</h4>
+                            <p className="text-[11px] text-slate-600 font-medium">{selectedOpportunity.instructorTitle}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-800 font-extrabold text-xs shadow-2xs flex items-center gap-1.5">
+                            <Globe className="w-3.5 h-3.5 text-blue-600" />
+                            {selectedOpportunity.learningPlatform}
+                          </span>
+                          <span className="px-3 py-1 rounded-xl bg-emerald-100 border border-emerald-200 text-emerald-800 font-extrabold text-xs shadow-2xs flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-emerald-600" />
+                            {selectedOpportunity.enrolledStudentsCount || 340} Campus Learners
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campus Voucher Box */}
+                  <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-emerald-50 p-4 rounded-2xl border border-indigo-200/80 shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-xs">
+                        <Sparkles className="w-4 h-4 text-indigo-600" />
+                        <span>Campus Institutional License & Fee Subsidy</span>
+                      </div>
+                      {selectedOpportunity.voucherDiscount && (
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                          {selectedOpportunity.voucherDiscount}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-indigo-100">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Enrollment Fee for Resora Students</span>
+                        <span className="font-extrabold text-slate-900 text-sm">{selectedOpportunity.examFee || '100% Free / Sponsored'}</span>
+                      </div>
+
+                      {selectedOpportunity.voucherCode && (
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <span className="text-[9px] uppercase font-bold text-slate-400 block">Campus Code</span>
+                            <span className="font-mono text-xs font-black text-indigo-900 bg-white px-2 py-0.5 rounded border border-indigo-200">
+                              {selectedOpportunity.voucherCode}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyVoucher(e, selectedOpportunity.voucherCode!, selectedOpportunity.id)}
+                            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                          >
+                            {copiedVoucherId === selectedOpportunity.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-300" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                            <span>{copiedVoucherId === selectedOpportunity.id ? 'Copied!' : 'Copy Code'}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Academic Credit Transfer */}
+                  {selectedOpportunity.academicCreditEquivalency && (
+                    <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-indigo-700 block">Department Academic Credit Mapping</span>
+                        <span className="font-extrabold text-slate-900 text-xs">{selectedOpportunity.academicCreditEquivalency}</span>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-indigo-200 text-indigo-900">
+                        🎓 Credit Transfer Eligible
+                      </span>
+                    </div>
+                  )}
+
+                  {/* If Course Series: Interactive Course Modules & Syllabus Explorer */}
+                  {selectedOpportunity.courseModules && selectedOpportunity.courseModules.length > 0 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-indigo-600" />
+                          <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                            Course Curriculum & Syllabus ({selectedOpportunity.courseModules.length} Modules)
+                          </h4>
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          {selectedOpportunity.preparationHours || 'Self-Paced'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {selectedOpportunity.courseModules.map((module, idx) => {
+                          const isExpanded = expandedModuleIndex === idx;
+                          return (
+                            <div
+                              key={`modal_mod_${module.moduleNumber}_${idx}`}
+                              className="border border-slate-200 rounded-2xl bg-slate-50/60 overflow-hidden transition-all shadow-2xs"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => setExpandedModuleIndex(isExpanded ? null : idx)}
+                                className="w-full p-3.5 text-left flex items-center justify-between gap-3 hover:bg-slate-100/70 transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-black text-xs flex items-center justify-center shrink-0">
+                                    {module.moduleNumber}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-extrabold text-slate-900 text-xs truncate">
+                                        {module.title}
+                                      </span>
+                                      {module.isCapstone && (
+                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 shrink-0">
+                                          ⭐ Capstone
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 font-semibold block">{module.duration}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">
+                                    {isExpanded ? 'Hide Topics' : `${module.topics?.length || 0} Topics`}
+                                  </span>
+                                  {isExpanded ? (
+                                    <ChevronUp className="w-4 h-4 text-slate-400" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                                  )}
+                                </div>
+                              </button>
+
+                              {isExpanded && (
+                                <div className="p-3.5 pt-0 border-t border-slate-200/60 space-y-2.5 bg-white">
+                                  <div className="pt-2">
+                                    <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Topics Covered:</span>
+                                    <ul className="space-y-1">
+                                      {module.topics?.map((topic, tIdx) => (
+                                        <li key={tIdx} className="text-xs text-slate-700 flex items-start gap-1.5">
+                                          <span className="text-indigo-500 font-bold mt-0.5">•</span>
+                                          <span>{topic}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+
+                                  {module.skillsGained && module.skillsGained.length > 0 && (
+                                    <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                                      <span className="text-[10px] uppercase font-bold text-slate-400 mr-1">Skills:</span>
+                                      {module.skillsGained.map((skill, sIdx) => (
+                                        <span
+                                          key={sIdx}
+                                          className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-bold text-indigo-700"
+                                        >
+                                          {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Capstone Project Blueprint Box */}
+                  {selectedOpportunity.capstoneProject && (
+                    <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-amber-900 font-extrabold text-xs">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>Independent Graded Capstone Project</span>
+                      </div>
+                      <p className="text-xs text-amber-950 font-semibold leading-relaxed">
+                        {selectedOpportunity.capstoneProject}
+                      </p>
+                      <p className="text-[11px] text-amber-800 italic pt-0.5">
+                        Evaluated directly by course faculty & industry reviewers for digital credential and placement portfolio.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Non-Course Series: Exam Blueprint Grid */}
+                  {!selectedOpportunity.isCourseSeries && (
+                    <div>
+                      <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">
+                        Exam Blueprint & Specifications
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Provider</span>
+                          <span className="font-extrabold text-slate-800">{selectedOpportunity.certificationProvider || selectedOpportunity.organization}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Exam Code</span>
+                          <span className="font-mono font-bold text-indigo-700">{selectedOpportunity.examCode || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Level</span>
+                          <span className="font-bold text-slate-800">{selectedOpportunity.certificationLevel || 'Associate'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Exam Duration</span>
+                          <span className="font-bold text-slate-800">{selectedOpportunity.examDurationMinutes ? `${selectedOpportunity.examDurationMinutes} Minutes` : 'Self-paced'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Passing Score</span>
+                          <span className="font-bold text-emerald-700">{selectedOpportunity.passingScore || '70%'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] font-bold block uppercase">Credential Validity</span>
+                          <span className="font-bold text-slate-800">{selectedOpportunity.credentialValidity || '3 Years'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Preparation & Prerequisites */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                      Preparation & Knowledge Requirements
+                    </h4>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                      {selectedOpportunity.preparationHours && (
+                        <div className="flex justify-between py-1 border-b border-slate-200">
+                          <span className="text-slate-500 font-medium">Estimated Study Time:</span>
+                          <span className="font-extrabold text-slate-800">{selectedOpportunity.preparationHours}</span>
+                        </div>
+                      )}
+                      {selectedOpportunity.prerequisites && selectedOpportunity.prerequisites.length > 0 && (
+                        <div className="py-1 border-b border-slate-200">
+                          <span className="text-slate-500 font-medium block mb-1">Prerequisites:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedOpportunity.prerequisites.map((req, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-700">
+                                {req}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedOpportunity.skillsRequired && selectedOpportunity.skillsRequired.length > 0 && (
+                        <div className="pt-1">
+                          <span className="text-slate-500 font-medium block mb-1">Skills Tested:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedOpportunity.skillsRequired.map((skill, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-900">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-400 text-[10px] font-bold block uppercase">Stipend / Prize</span>
-                  <span className="font-bold text-emerald-700">{selectedOpportunity.stipend || selectedOpportunity.stipendOrPrize || selectedOpportunity.prizePool || 'N/A'}</span>
+              ) : (
+                /* Non-certification details (Hackathons & Internships) */
+                <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <div>
+                    <span className="text-slate-400 text-[10px] font-bold block uppercase">Deadline</span>
+                    <span className="font-bold text-slate-800">{selectedOpportunity.deadline}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] font-bold block uppercase">Stipend / Prize</span>
+                    <span className="font-bold text-emerald-700">{selectedOpportunity.stipend || selectedOpportunity.stipendOrPrize || selectedOpportunity.prizePool || 'N/A'}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setSelectedOpportunity(null)}
@@ -641,15 +1221,33 @@ export default function StudentOpportunitiesPage() {
                 Close
               </button>
 
+              {selectedOpportunity.curriculumSyllabusUrl && isValidExternalUrl(selectedOpportunity.curriculumSyllabusUrl) && (
+                <a
+                  href={selectedOpportunity.curriculumSyllabusUrl.trim()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-xl text-xs font-extrabold border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 flex items-center gap-1.5 transition-all"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{selectedOpportunity.isCourseSeries ? 'Official Course Syllabus' : 'Official Exam Syllabus'}</span>
+                </a>
+              )}
+
               {isValidExternalUrl(selectedOpportunity.applicationUrl || selectedOpportunity.officialWebsiteUrl) && (
                 <a
                   href={(selectedOpportunity.applicationUrl || selectedOpportunity.officialWebsiteUrl)!.trim()}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => handleApplyClick(e, selectedOpportunity)}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-1.5"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-1.5 transition-all"
                 >
-                  <span>Apply Now →</span>
+                  <span>
+                    {selectedOpportunity.type === 'CERTIFICATION'
+                      ? (selectedOpportunity.isCourseSeries
+                          ? `Enroll Course (${selectedOpportunity.learningPlatform || 'Online'}) →`
+                          : 'Schedule & Register Exam →')
+                      : 'Apply Now →'}
+                  </span>
                 </a>
               )}
             </div>

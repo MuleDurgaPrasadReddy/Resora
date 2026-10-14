@@ -174,10 +174,25 @@ export default function FacultyOpportunitiesPage() {
                             ? 'bg-purple-50 text-purple-700 border-purple-200'
                             : opp.type === 'INTERNSHIP'
                             ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-amber-50 text-amber-800 border-amber-300'
                         }`}>
                           {opp.type}
                         </span>
+                        {opp.type === 'CERTIFICATION' && opp.certificationLevel && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                            {opp.certificationLevel}
+                          </span>
+                        )}
+                        {opp.type === 'CERTIFICATION' && opp.voucherDiscount && (
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300">
+                            🎁 {opp.voucherDiscount}
+                          </span>
+                        )}
+                        {opp.type === 'CERTIFICATION' && opp.academicCreditEquivalency && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            🎓 {opp.academicCreditEquivalency}
+                          </span>
+                        )}
                         {opp.isVerified && (
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                             <ShieldCheck className="w-3 h-3" />
@@ -274,10 +289,25 @@ export default function FacultyOpportunitiesPage() {
                                 ? 'bg-purple-50 text-purple-700 border-purple-200'
                                 : opp.type === 'INTERNSHIP'
                                 ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-amber-50 text-amber-800 border-amber-300'
                             }`}>
                               {opp.type}
                             </span>
+                            {opp.type === 'CERTIFICATION' && opp.certificationLevel && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {opp.certificationLevel}
+                              </span>
+                            )}
+                            {opp.type === 'CERTIFICATION' && opp.voucherDiscount && (
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                🎁 {opp.voucherDiscount}
+                              </span>
+                            )}
+                            {opp.type === 'CERTIFICATION' && opp.academicCreditEquivalency && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                🎓 {opp.academicCreditEquivalency}
+                              </span>
+                            )}
                             <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               ✓ Recommended to {targetYearLabel}

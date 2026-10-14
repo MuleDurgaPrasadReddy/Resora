@@ -1,4 +1,4 @@
-import { User, Resource, Booking, MaintenanceIssue, AuditLog, Opportunity, StudentProject, StudentProgress } from '@/types';
+import { User, Resource, Booking, MaintenanceIssue, AuditLog, Opportunity, StudentProject, StudentProgress, LeavePermission, CampusEvent, CampusClub, EventRegistration, ClubMembershipApplication } from '@/types';
 
 export const DEMO_USERS: Record<string, User> = {
   STUDENT: {
@@ -34,6 +34,11 @@ export const DEMO_USERS: Record<string, User> = {
     title: 'Campus Administrator',
   },
 };
+
+// Case-insensitive aliases
+DEMO_USERS.student = DEMO_USERS.STUDENT;
+DEMO_USERS.faculty = DEMO_USERS.FACULTY;
+DEMO_USERS.admin = DEMO_USERS.ADMIN;
 
 export const MOCK_RESOURCES: Resource[] = [
   {
@@ -284,6 +289,115 @@ export const INITIAL_BOOKINGS: Booking[] = [
     status: 'PENDING',
     requestedAt: '2026-09-30 07:50 AM',
     approvalStep: 'Faculty',
+  },
+];
+
+export const INITIAL_LEAVE_PERMISSIONS: LeavePermission[] = [
+  {
+    id: 'leave_01',
+    passCode: 'OUT-8941',
+    userId: 'usr_student_01',
+    userName: 'Aryan Reddy',
+    rollNumber: 'CSE-2023-042',
+    department: 'CSE',
+    academicYear: 3,
+    academicYearLabel: '3rd Year',
+    studentPhone: '+91 98765 11223',
+    parentPhone: '+91 98765 43210',
+    parentName: 'M. V. Reddy',
+    leaveType: 'AFTERNOON_EXIT',
+    leaveTypeLabel: 'Afternoon Exit (Going Home)',
+    reason: 'Doctor appointment at 2:30 PM near residence. Completed morning DBMS laboratory & viva examination.',
+    destination: 'Home (Madhapur, Hyderabad)',
+    date: '2026-10-14',
+    departureTime: '01:15 PM',
+    expectedReturnTime: 'Not Returning (Going Home)',
+    isFullDayOrAfternoon: 'AFTERNOON',
+    status: 'APPROVED',
+    requestedAt: '2026-10-14 10:20 AM',
+    approvedByFacultyId: 'usr_faculty_01',
+    approvedByFacultyName: 'Dr. S. Rao',
+    approvedAt: '2026-10-14 10:45 AM',
+    approvalRemarks: 'Verified morning lab session completion. Granted afternoon outpass to go home.',
+    qrPassCode: 'PASS-RESORA-OUT-8941-SEC',
+    qrIssuedAt: '2026-10-14 10:45 AM',
+    validGate: 'Main Gate & Gate 2',
+  },
+  {
+    id: 'leave_02',
+    passCode: 'OUT-8942',
+    userId: 'usr_student_01',
+    userName: 'Aryan Reddy',
+    rollNumber: 'CSE-2023-042',
+    department: 'CSE',
+    academicYear: 3,
+    academicYearLabel: '3rd Year',
+    studentPhone: '+91 98765 11223',
+    parentPhone: '+91 98765 43210',
+    parentName: 'M. V. Reddy',
+    leaveType: 'AFTERNOON_EXIT',
+    leaveTypeLabel: 'Afternoon Exit (Going Home)',
+    reason: 'Family ceremony preparation in hometown. Need to board afternoon express train at 3:00 PM.',
+    destination: 'Native Residence (Guntur)',
+    date: '2026-10-15',
+    departureTime: '01:30 PM',
+    expectedReturnTime: 'Next Day 08:30 AM',
+    isFullDayOrAfternoon: 'AFTERNOON',
+    status: 'PENDING',
+    requestedAt: '2026-10-14 11:30 AM',
+  },
+  {
+    id: 'leave_03',
+    passCode: 'OUT-8943',
+    userId: 'usr_student_02',
+    userName: 'Sneha Reddy',
+    rollNumber: 'CSE-2023-088',
+    department: 'CSE',
+    academicYear: 3,
+    academicYearLabel: '3rd Year',
+    studentPhone: '+91 98480 99887',
+    parentPhone: '+91 98480 12345',
+    parentName: 'K. Raman Reddy',
+    leaveType: 'MEDICAL_LEAVE',
+    leaveTypeLabel: 'Medical Emergency Leave',
+    reason: 'Severe fever & acute migraine symptoms. Need to go home to consult family physician.',
+    destination: 'Home (Kukatpally, Hyderabad)',
+    date: '2026-10-14',
+    departureTime: '02:00 PM',
+    expectedReturnTime: 'Not Returning (Rest at Home)',
+    isFullDayOrAfternoon: 'AFTERNOON',
+    status: 'PENDING',
+    requestedAt: '2026-10-14 11:45 AM',
+  },
+  {
+    id: 'leave_04',
+    passCode: 'OUT-8910',
+    userId: 'usr_student_03',
+    userName: 'Rahul Verma',
+    rollNumber: 'CSE-2023-019',
+    department: 'CSE',
+    academicYear: 3,
+    academicYearLabel: '3rd Year',
+    studentPhone: '+91 99887 11223',
+    parentPhone: '+91 99887 76655',
+    parentName: 'P. Verma',
+    leaveType: 'EVENT_OD',
+    leaveTypeLabel: 'On-Duty (External Event)',
+    reason: 'Representing Resora at Smart India Hackathon Regional Prototype Review at IIT Hyderabad.',
+    destination: 'IIT Hyderabad Kandi Campus',
+    date: '2026-10-16',
+    departureTime: '12:30 PM',
+    expectedReturnTime: 'Next Monday 08:30 AM',
+    isFullDayOrAfternoon: 'AFTERNOON',
+    status: 'APPROVED',
+    requestedAt: '2026-10-13 04:00 PM',
+    approvedByFacultyId: 'usr_faculty_01',
+    approvedByFacultyName: 'Dr. S. Rao',
+    approvedAt: '2026-10-13 05:15 PM',
+    approvalRemarks: 'Official University Representation. OD granted.',
+    qrPassCode: 'PASS-RESORA-OUT-8910-SEC',
+    qrIssuedAt: '2026-10-13 05:15 PM',
+    validGate: 'All Campus Gates',
   },
 ];
 
@@ -710,6 +824,1221 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     recommendations: [],
     description: 'Join Google core infrastructure team for 8-12 weeks working on high-performance distributed systems and AI services.',
     tags: ['Google', 'Software Engineering', 'C++/Python', 'Systems']
+  },
+
+  // ==================== INDUSTRY CERTIFICATIONS ====================
+  {
+    id: 'cert-aws-saa',
+    title: 'AWS Certified Solutions Architect – Associate (SAA-C03)',
+    organization: 'Amazon Web Services (AWS)',
+    organizer: 'AWS Training & Certification',
+    logoUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Cloud Architecture & Distributed Systems',
+    mode: 'Online Proctored',
+    workMode: 'Online',
+    location: 'Remote Proctored / Pearson VUE',
+    startDate: '2026-10-15',
+    endDate: '2026-12-31',
+    deadline: '15 Dec 2026',
+    
+    // Certification Specific
+    certificationProvider: 'Amazon Web Services',
+    certificationLevel: 'Associate',
+    examCode: 'SAA-C03',
+    examDurationMinutes: 130,
+    passingScore: '720 / 1000 (72%)',
+    examFormat: '65 Multiple Choice & Multi-select Questions',
+    voucherDiscount: '100% Campus Sponsored Voucher',
+    voucherCode: 'RESORA-AWS-EDU26',
+    examFee: '$150 (100% Waived for Resora Students)',
+    credentialValidity: '3 Years (Credly Digital Badge)',
+    badgeUrl: 'https://images.credly.com/images/0e284c41-3b7c-4ab4-86e1-953eb11b2cb8/image.png',
+    curriculumSyllabusUrl: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/',
+    prerequisites: ['Basic Cloud Fundamentals', 'Computer Networking', 'Linux Command Line basics'],
+    preparationHours: '40 - 50 Hours (AWS Skill Builder + Practice Exams)',
+    academicCreditEquivalency: '3 Open Elective Credits (7th or 8th Semester)',
+    
+    eligibility: 'All Engineering & Computer Science Students (2nd, 3rd & 4th Year)',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'ECE', 'AI/ML', 'Data Science'],
+    skillsRequired: ['AWS IAM', 'EC2 & VPC', 'S3 Storage', 'Serverless Lambda', 'High Availability Design'],
+    technologies: ['AWS', 'CloudFormation', 'DynamoDB', 'Docker', 'Route 53'],
+    
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/',
+    applicationUrl: 'https://www.aws.training/certification',
+    contactEmail: 'aws-campus@resora.edu',
+    source: 'AWS Academy Institutional Partner',
+    isVerified: true,
+    isFeatured: true,
+    saved: true,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [
+      {
+        id: 'rec_aws_01',
+        opportunityId: 'cert-aws-saa',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 3,
+        targetYearLabel: '3rd Year',
+        message: 'Crucial industry benchmark for campus placements. Resora TEQIP funds 100% of your exam fee voucher.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      },
+      {
+        id: 'rec_aws_02',
+        opportunityId: 'cert-aws-saa',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 4,
+        targetYearLabel: '4th Year',
+        message: 'Directly maps to 3 Open Elective credits. Mandatory for cloud track honors students.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      }
+    ],
+    description: 'Validate your ability to design secure, robust, and resilient high-availability systems on Amazon Web Services. Includes full student fee waiver and official voucher code.',
+    shortDescription: 'Industry gold standard cloud architect certification with 100% campus voucher subsidy.',
+    tags: ['AWS', 'Cloud', 'Architecture', 'Certification', 'Voucher']
+  },
+  {
+    id: 'cert-cka',
+    title: 'Certified Kubernetes Administrator (CKA)',
+    organization: 'Cloud Native Computing Foundation (CNCF)',
+    organizer: 'The Linux Foundation',
+    logoUrl: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Cloud Native & DevOps Engineering',
+    mode: 'Online Hands-on Lab',
+    workMode: 'Online',
+    location: 'Remote Linux Performance Terminal',
+    startDate: '2026-10-20',
+    endDate: '2026-12-20',
+    deadline: '20 Dec 2026',
+    
+    certificationProvider: 'CNCF / The Linux Foundation',
+    certificationLevel: 'Professional',
+    examCode: 'CKA-2026',
+    examDurationMinutes: 120,
+    passingScore: '66% or higher in Live Cluster CLI Tasks',
+    examFormat: '17 Performance-based Real-world Cluster Scenarios',
+    voucherDiscount: '50% CNCF Student Discount + 1 Free Retake',
+    voucherCode: 'KUBE-STUDENT-50',
+    examFee: '$395 ($197 with Student Voucher)',
+    credentialValidity: '3 Years (Digital Credly Badge & Verification)',
+    badgeUrl: 'https://images.credly.com/images/8b8e66d7-6aab-4720-9943-22877a16f491/image.png',
+    curriculumSyllabusUrl: 'https://www.cncf.io/certification/cka/',
+    prerequisites: ['Linux Shell Scripting', 'Container Fundamentals (Docker)', 'Basic Networking'],
+    preparationHours: '60 - 80 Hours (Hands-on Kubernetes Playground)',
+    academicCreditEquivalency: '4 Advanced Systems Credits',
+    
+    eligibility: 'Pre-final & Final Year Students with Linux proficiency',
+    eligibleDegrees: ['B.Tech', 'M.Tech'],
+    eligibleYears: ['3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT'],
+    skillsRequired: ['Kubernetes', 'Docker', 'Linux CLI', 'Cluster Troubleshooting', 'RBAC & Networking'],
+    technologies: ['Kubernetes', 'etcd', 'systemd', 'iptables', 'Helm'],
+    
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://www.cncf.io/certification/cka/',
+    applicationUrl: 'https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/',
+    contactEmail: 'devops-lab@resora.edu',
+    source: 'Linux Foundation Academic Initiative',
+    isVerified: true,
+    isFeatured: true,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'The highest regarded practical performance certification in cloud engineering. Tests real-time cluster troubleshooting, workload deployment, and networking on live virtual clusters.',
+    shortDescription: 'Hands-on practical performance exam on live Kubernetes clusters with student discount.',
+    tags: ['Kubernetes', 'DevOps', 'Docker', 'Linux', 'Certification']
+  },
+  {
+    id: 'cert-azure-ai',
+    title: 'Microsoft Certified: Azure AI Engineer Associate (AI-102)',
+    organization: 'Microsoft',
+    organizer: 'Microsoft Learn',
+    logoUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Artificial Intelligence & Large Language Models',
+    mode: 'Online Proctored',
+    workMode: 'Online',
+    location: 'Remote Proctored / Pearson VUE',
+    startDate: '2026-10-10',
+    endDate: '2026-12-15',
+    deadline: '15 Dec 2026',
+    
+    certificationProvider: 'Microsoft',
+    certificationLevel: 'Associate',
+    examCode: 'AI-102',
+    examDurationMinutes: 100,
+    passingScore: '700 / 1000 (70%)',
+    examFormat: '40 - 60 Multiple Choice, Drag-and-drop & Case Studies',
+    voucherDiscount: '100% Free Microsoft Campus Agreement Voucher',
+    voucherCode: 'MSFT-RESORA-AI2026',
+    examFee: '$165 (100% Free for Resora AI & CSE Students)',
+    credentialValidity: '1 Year (Free Annual Online Renewal)',
+    badgeUrl: 'https://images.credly.com/images/330058e4-b778-450f-a42e-15d7422f6764/image.png',
+    curriculumSyllabusUrl: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-engineer/',
+    prerequisites: ['Python or C# programming', 'REST APIs', 'Foundational Machine Learning'],
+    preparationHours: '35 - 45 Hours (Microsoft Learn Free Learning Paths)',
+    academicCreditEquivalency: '3 Credits for AI/ML Track Elective',
+    
+    eligibility: 'All B.Tech/M.Tech Students enrolled in AI, CS, or Data Science',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'AI/ML', 'Data Science', 'IT'],
+    skillsRequired: ['Azure OpenAI', 'Cognitive Services', 'Computer Vision', 'NLP', 'Vector Search'],
+    technologies: ['Azure AI Studio', 'Python', 'LangChain', 'Prompt Flow', 'OpenAI'],
+    
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-engineer/',
+    applicationUrl: 'https://learn.microsoft.com/en-us/credentials/certifications/exams/ai-102/',
+    contactEmail: 'microsoft-campus@resora.edu',
+    source: 'Microsoft Learn for Educators Program',
+    isVerified: true,
+    isFeatured: true,
+    saved: true,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [
+      {
+        id: 'rec_msft_01',
+        opportunityId: 'cert-azure-ai',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 3,
+        targetYearLabel: '3rd Year',
+        message: 'Top-tier generative AI & OpenAI engineering certification. Fully funded by campus license.',
+        recommendedAt: '2026-10-05',
+        isActive: true,
+      }
+    ],
+    description: 'Build, manage, and deploy AI solutions using Azure OpenAI, Computer Vision, Speech, Natural Language Processing, and knowledge mining.',
+    shortDescription: 'Master Azure OpenAI and generative AI solutions with a 100% institutional voucher.',
+    tags: ['Azure', 'OpenAI', 'Artificial Intelligence', 'LLM', 'Certification']
+  },
+  {
+    id: 'cert-gcp-ace',
+    title: 'Google Cloud Certified Associate Cloud Engineer (ACE)',
+    organization: 'Google Cloud',
+    organizer: 'Google Cloud Education',
+    logoUrl: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Cloud Infrastructure & Google Cloud Platform',
+    mode: 'Online Proctored',
+    workMode: 'Online',
+    location: 'Remote Proctored / Kryterion Test Center',
+    startDate: '2026-11-01',
+    endDate: '2027-01-15',
+    deadline: '10 Jan 2027',
+    
+    certificationProvider: 'Google Cloud',
+    certificationLevel: 'Associate',
+    examCode: 'GCP-ACE',
+    examDurationMinutes: 120,
+    passingScore: 'Pass / Fail (~70% Scaled Score)',
+    examFormat: '50 - 60 Multiple Choice and Multiple Select Questions',
+    voucherDiscount: '50% Google Cloud Student Discount Voucher',
+    voucherCode: 'GCP-CAMPUS-STUDENT50',
+    examFee: '$125 ($62.50 with Student Discount)',
+    credentialValidity: '3 Years (Google Cloud Certified Directory)',
+    badgeUrl: 'https://images.credly.com/images/3f8216ef-e987-4d43-a621-c42a2254f158/image.png',
+    curriculumSyllabusUrl: 'https://cloud.google.com/learn/certification/cloud-engineer',
+    prerequisites: ['Basic Cloud concepts', 'gcloud CLI basics', 'Virtual Machines & Storage'],
+    preparationHours: '40 Hours (Google Cloud Skills Boost free access)',
+    academicCreditEquivalency: '2 Credits under Industry Honours Track',
+    
+    eligibility: 'Open to all UG/PG STEM students',
+    eligibleDegrees: ['B.Tech', 'M.Tech', 'B.Sc', 'MCA'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'ECE'],
+    skillsRequired: ['Compute Engine', 'Google Kubernetes Engine (GKE)', 'Cloud Storage', 'IAM', 'Cloud Run'],
+    technologies: ['GCP', 'gcloud CLI', 'BigQuery', 'Terraform', 'Kubernetes'],
+    
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://cloud.google.com/learn/certification/cloud-engineer',
+    applicationUrl: 'https://webassessor.com/googlecloud',
+    contactEmail: 'google-partner@resora.edu',
+    source: 'Google Cloud Career Launchpad',
+    isVerified: true,
+    isFeatured: false,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'Demonstrate competency in deploying applications, monitoring operations, and managing enterprise solutions on Google Cloud Platform.',
+    shortDescription: 'Enterprise GCP deployment and operations certification with 50% student voucher discount.',
+    tags: ['Google Cloud', 'GCP', 'Kubernetes', 'Cloud', 'Certification']
+  },
+  {
+    id: 'cert-meta-fe',
+    title: 'Meta Certified Front-End Developer Professional Certificate',
+    organization: 'Meta',
+    organizer: 'Meta & Coursera Campus',
+    logoUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Full-Stack & Modern Web Technologies',
+    mode: 'Self-Paced with Graded Capstone',
+    workMode: 'Online',
+    location: 'Coursera Campus Platform',
+    startDate: '2026-10-01',
+    endDate: '2026-12-31',
+    deadline: '31 Dec 2026',
+    
+    certificationProvider: 'Meta',
+    certificationLevel: 'Professional',
+    examCode: 'META-FE-PRO',
+    examDurationMinutes: 90,
+    passingScore: '80% on Final Capstone Project & Assessment',
+    examFormat: 'Portfolio Project Submission + Proctored Knowledge Checks',
+    voucherDiscount: '100% Free Coursera Campus Institutional Access',
+    voucherCode: 'META-RESORA-FREE26',
+    examFee: 'Free (Sponsored by Resora University)',
+    credentialValidity: 'Lifetime Digital Credential & Meta Career Network Access',
+    badgeUrl: 'https://images.credly.com/images/73f009bf-24ff-4200-a4ef-4660ee0ea08f/image.png',
+    curriculumSyllabusUrl: 'https://www.coursera.org/professional-certificates/meta-front-end-developer',
+    prerequisites: ['Basic HTML/CSS familiarity', 'No prior professional experience required'],
+    preparationHours: '50 - 60 Hours (Self-paced, 9 Courses)',
+    academicCreditEquivalency: '3 Credits for Web Technologies Elective',
+    
+    eligibility: 'All years and all engineering departments',
+    eligibleDegrees: ['B.Tech', 'B.E', 'MCA', 'B.Sc'],
+    eligibleYears: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'ECE', 'AI/ML'],
+    skillsRequired: ['React', 'JavaScript ES6+', 'Tailwind CSS', 'Version Control (Git)', 'UI/UX Principles'],
+    technologies: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Jest', 'Git'],
+    
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://www.coursera.org/professional-certificates/meta-front-end-developer',
+    applicationUrl: 'https://www.coursera.org/programs/resora-campus',
+    contactEmail: 'careers@resora.edu',
+    source: 'Meta Career Programs Partner',
+    isVerified: true,
+    isFeatured: false,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'Designed by software engineers at Meta. Build portfolio-ready web apps with React, modern JavaScript, and UX best practices. Includes access to the exclusive Meta Career Programs Job Board.',
+    shortDescription: 'Professional front-end developer certificate by Meta with direct access to Meta job board.',
+    tags: ['Meta', 'React', 'Frontend', 'JavaScript', 'Certification']
+  },
+
+  // ==================== CERTIFICATION COURSES & SPECIALIZATIONS ====================
+  {
+    id: 'course-deeplearning-ai',
+    title: 'Deep Learning Specialization (5-Course Series)',
+    organization: 'DeepLearning.AI & Stanford Online',
+    organizer: 'Prof. Andrew Ng',
+    logoUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Deep Learning, Computer Vision & Transformers',
+    mode: 'Online Self-Paced with Graded Labs',
+    workMode: 'Online',
+    location: 'Coursera Campus / DeepLearning.AI',
+    startDate: '2026-10-15',
+    endDate: '2027-01-31',
+    deadline: '31 Jan 2027',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Prof. Andrew Ng',
+    instructorTitle: 'Adjunct Professor at Stanford University, Co-founder of Coursera & DeepLearning.AI',
+    learningPlatform: 'Coursera Campus',
+    totalCoursesCount: 5,
+    enrolledStudentsCount: 418,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'Autonomous Audio Keyword Spotting & Multimodal Transformer Pipeline',
+
+    courseModules: [
+      {
+        moduleNumber: 1,
+        title: 'Neural Networks and Deep Learning',
+        duration: '4 Weeks (16 Hours)',
+        topics: [
+          'Binary classification with Logistic Regression',
+          'Vectorization techniques in Python & NumPy',
+          'Forward propagation & Backward propagation calculus',
+          'Deep L-layer neural network architecture implementation from scratch'
+        ],
+        skillsGained: ['Deep Learning', 'Artificial Neural Networks', 'Backpropagation', 'Python/NumPy']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Improving Deep Neural Networks: Hyperparameter Tuning, Regularization & Optimization',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Initialization strategies (Xavier, He) & Numerical gradient checking',
+          'L2 Regularization, Dropout & Early Stopping to prevent overfitting',
+          'RMSprop, Adam optimizer & Learning rate decay schedules',
+          'Batch Normalization and multi-GPU distributed mini-batch training'
+        ],
+        skillsGained: ['Hyperparameter Tuning', 'Adam Optimizer', 'Batch Normalization', 'Model Diagnostics']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Structuring Machine Learning Projects',
+        duration: '2 Weeks (8 Hours)',
+        topics: [
+          'Orthogonalization strategies in production ML',
+          'Evaluating Train/Dev/Test distributions & Bayes optimal error',
+          'Error analysis matrices & Prioritizing engineering directions',
+          'Transfer learning, multi-task learning & end-to-end deep learning tradeoffs'
+        ],
+        skillsGained: ['ML Strategy', 'Error Analysis', 'Transfer Learning', 'MLOps Mindset']
+      },
+      {
+        moduleNumber: 4,
+        title: 'Convolutional Neural Networks (CNNs)',
+        duration: '4 Weeks (18 Hours)',
+        topics: [
+          'Foundations of Convolutional layers, pooling & padding',
+          'Deep architectures: LeNet, AlexNet, VGG, ResNet & Inception networks',
+          'YOLO (You Only Look Once) real-time bounding box object detection',
+          'Face verification with Siamese Networks, Triplet loss & Neural Style Transfer'
+        ],
+        skillsGained: ['Computer Vision', 'ResNets', 'YOLO Object Detection', 'Facial Recognition']
+      },
+      {
+        moduleNumber: 5,
+        title: 'Sequence Models, Attention & Transformers',
+        duration: '4 Weeks (18 Hours)',
+        topics: [
+          'Recurrent Neural Networks (RNNs) & Vanishing gradients',
+          'Gated Recurrent Units (GRUs) and Long Short-Term Memory (LSTM)',
+          'Word embeddings (Word2Vec, GloVe) & Sentiment classification',
+          'Attention mechanism, Self-Attention & Transformer encoder-decoder blocks'
+        ],
+        skillsGained: ['Natural Language Processing', 'Transformers', 'Self-Attention', 'Speech Recognition'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'DeepLearning.AI',
+    certificationLevel: 'Specialization (Professional)',
+    examCode: 'DLAI-DLS-5',
+    examDurationMinutes: 120,
+    passingScore: '80% on all 5 Course Programming Assignments & Quizzes',
+    examFormat: 'Jupyter Notebook Graded Labs (Coursera AutoGrader)',
+    voucherDiscount: '100% Free via Resora Coursera Campus License',
+    voucherCode: 'RESORA-COURSERA-AI',
+    examFee: 'Free ($49/month waived for Resora Students)',
+    credentialValidity: 'Lifetime Verified Certificate & LinkedIn Digital Badge',
+    badgeUrl: 'https://images.credly.com/images/330058e4-b778-450f-a42e-15d7422f6764/image.png',
+    curriculumSyllabusUrl: 'https://www.coursera.org/specializations/deep-learning',
+    prerequisites: ['Python intermediate programming', 'Linear algebra & matrix multiplication', 'Basic calculus concepts'],
+    preparationHours: '70 - 80 Hours over 8 - 12 Weeks',
+    academicCreditEquivalency: '4 Advanced Elective Credits (Department of CSE / AI)',
+
+    eligibility: 'All Engineering & Technology Students (2nd, 3rd, 4th Year)',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA', 'B.Sc Data Science'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'AI/ML', 'Data Science', 'ECE', 'IT'],
+    skillsRequired: ['Python', 'NumPy', 'TensorFlow', 'Neural Networks', 'Maths for ML'],
+    technologies: ['TensorFlow', 'Keras', 'Python', 'NumPy', 'Jupyter'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://www.deeplearning.ai/courses/deep-learning-specialization/',
+    applicationUrl: 'https://www.coursera.org/programs/resora-campus',
+    contactEmail: 'ai-lab@resora.edu',
+    source: 'Coursera Campus Enterprise Partnership',
+    isVerified: true,
+    isFeatured: true,
+    saved: true,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [
+      {
+        id: 'rec_dl_01',
+        opportunityId: 'course-deeplearning-ai',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 3,
+        targetYearLabel: '3rd Year',
+        message: 'The gold standard globally for AI/ML foundations. Completing this unlocks direct 4 credits and high placement appeal.',
+        recommendedAt: '2026-10-02',
+        isActive: true,
+      },
+      {
+        id: 'rec_dl_02',
+        opportunityId: 'course-deeplearning-ai',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 4,
+        targetYearLabel: '4th Year',
+        message: 'Crucial for students aspiring for top AI product firms and MS applications.',
+        recommendedAt: '2026-10-02',
+        isActive: true,
+      }
+    ],
+    description: 'Master deep learning fundamentals, build neural networks, train CNNs for computer vision, and deploy Transformers for sequence modeling under legendary educator Prof. Andrew Ng.',
+    shortDescription: 'World-renowned 5-course deep learning series by Prof. Andrew Ng with 100% free campus license.',
+    tags: ['Deep Learning', 'Prof. Andrew Ng', 'Neural Networks', 'Coursera', 'AI/ML', 'Specialization']
+  },
+  {
+    id: 'course-harvard-cs50',
+    title: 'CS50x: Introduction to Computer Science (Harvard University)',
+    organization: 'Harvard University',
+    organizer: 'Prof. David J. Malan',
+    logoUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Computer Science Core & Software Engineering',
+    mode: 'Self-Paced with Problem Sets & Code Review',
+    workMode: 'Online',
+    location: 'Harvard Online / edX Platform',
+    startDate: '2026-10-10',
+    endDate: '2026-12-31',
+    deadline: '31 Dec 2026',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Prof. David J. Malan',
+    instructorTitle: 'Gordon McKay Professor of the Practice of Computer Science, Harvard University',
+    learningPlatform: 'edX & Harvard Online',
+    totalCoursesCount: 10,
+    enrolledStudentsCount: 560,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'CS50 Final Project: Fullstack Production Application Developed Independently',
+
+    courseModules: [
+      {
+        moduleNumber: 0,
+        title: 'Computational Thinking, Scratch & Binary Logic',
+        duration: 'Week 0 (6 Hours)',
+        topics: [
+          'Binary representation, ASCII & Unicode encodings',
+          'Algorithms, pseudocode & flowcharts',
+          'Event-driven programming with Scratch visual blocks'
+        ],
+        skillsGained: ['Computational Thinking', 'Algorithm Design', 'Scratch']
+      },
+      {
+        moduleNumber: 1,
+        title: 'C Programming & Low-Level Memory Foundations',
+        duration: 'Week 1 (8 Hours)',
+        topics: [
+          'Source code to machine code compilation phases (Clang, linking)',
+          'Variables, data types, conditionals & nested loops',
+          'Command-line compilation, Makefiles and CS50 library helpers'
+        ],
+        skillsGained: ['C Language', 'Memory Mechanics', 'Linux Terminal', 'Makefiles']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Arrays, Memory Addresses & Cryptography',
+        duration: 'Week 2 (8 Hours)',
+        topics: [
+          '1D and 2D Arrays layout in physical RAM',
+          'Null-terminated strings & Character arithmetic',
+          'Implementing Caesar and Vigenère encryption ciphers'
+        ],
+        skillsGained: ['Array Layout', 'String Manipulation', 'Basic Cryptography']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Algorithms, Search, Sort & Asymptotic Notation',
+        duration: 'Week 3 (10 Hours)',
+        topics: [
+          'Linear search vs Binary search on sorted arrays',
+          'Bubble sort, Selection sort, Insertion sort & Merge sort',
+          'Asymptotic upper and lower bounds (Big-O, Omega, Theta)',
+          'Recursion and call stack frame allocation'
+        ],
+        skillsGained: ['Algorithm Analysis', 'Recursion', 'Sorting Algorithms', 'Big-O']
+      },
+      {
+        moduleNumber: 4,
+        title: 'Pointers, Dynamic Memory Allocation & Data Structures',
+        duration: 'Week 4 (12 Hours)',
+        topics: [
+          'Pointers, memory addresses & dereferencing (* and &)',
+          'Heap vs Stack memory allocation with malloc and free',
+          'Detecting memory leaks with Valgrind',
+          'Linked lists, hash tables, binary search trees & tries'
+        ],
+        skillsGained: ['Pointers', 'Dynamic Memory Allocation', 'Valgrind', 'Tries & Hash Tables']
+      },
+      {
+        moduleNumber: 5,
+        title: 'Data Structures at Scale (The Speller Challenge)',
+        duration: 'Week 5 (10 Hours)',
+        topics: [
+          'Implementing the CS50 Speller dictionary benchmark in C',
+          'Optimizing load, check, size, and unload operations',
+          'Trie vs Hash Table time-space tradeoffs'
+        ],
+        skillsGained: ['Systems Programming', 'Benchmarking', 'Cache Friendly Code']
+      },
+      {
+        moduleNumber: 6,
+        title: 'Python Language & Rapid Prototyping',
+        duration: 'Week 6 (8 Hours)',
+        topics: [
+          'Python data types, list comprehensions, dicts & sets',
+          'Re-implementing C algorithms in Pythonic idioms',
+          'Object-oriented principles and third-party libraries'
+        ],
+        skillsGained: ['Python', 'Data Structures', 'OOP']
+      },
+      {
+        moduleNumber: 7,
+        title: 'SQL, Relational Databases & Schema Normalization',
+        duration: 'Week 7 (8 Hours)',
+        topics: [
+          'Relational tables, primary keys, foreign keys & indexes',
+          'SELECT, JOIN, GROUP BY, aggregates and nested queries',
+          'SQLite CLI & connecting Python apps to relational DBs'
+        ],
+        skillsGained: ['SQL', 'Relational Schemas', 'SQLite', 'Database Indexing']
+      },
+      {
+        moduleNumber: 8,
+        title: 'Web Programming: HTML, CSS & Vanilla JavaScript',
+        duration: 'Week 8 (8 Hours)',
+        topics: [
+          'Semantic HTML5 structure & CSS3 responsive flexbox/grid',
+          'Document Object Model (DOM) tree manipulation',
+          'Asynchronous fetch API & event listener callbacks'
+        ],
+        skillsGained: ['HTML5', 'CSS3', 'JavaScript', 'DOM API']
+      },
+      {
+        moduleNumber: 9,
+        title: 'Flask Web Framework & Fullstack Integration',
+        duration: 'Week 9 (10 Hours)',
+        topics: [
+          'Model-View-Controller (MVC) architecture with Flask',
+          'Handling POST requests, cookies, user authentication sessions',
+          'CS50 Finance stock trading simulator web app'
+        ],
+        skillsGained: ['Flask', 'MVC Architecture', 'Session Management', 'Fullstack']
+      },
+      {
+        moduleNumber: 10,
+        title: 'CS50 Capstone Project: Production Software Application',
+        duration: 'Week 10 (20 Hours)',
+        topics: [
+          'Architecting, designing, and engineering an end-to-end software product',
+          'Git commit history, README documentation, and recorded demo',
+          'Peer review and Harvard CS50 staff evaluation'
+        ],
+        skillsGained: ['End-to-End Engineering', 'System Design', 'Portfolio Presentation'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'Harvard University',
+    certificationLevel: 'Academic Certificate of Completion',
+    examCode: 'HARVARD-CS50X',
+    examDurationMinutes: 180,
+    passingScore: '70% or higher on each of the 9 Problem Sets and Final Capstone',
+    examFormat: 'GitHub Classroom Automated Code Checks (check50 & style50)',
+    voucherDiscount: '100% Free edX Verified Certificate for Resora Students',
+    voucherCode: 'HARVARD-RESORA-EDX',
+    examFee: 'Free ($199 verified certificate waived)',
+    credentialValidity: 'Lifetime Harvard Verified Digital Certificate',
+    badgeUrl: 'https://images.credly.com/images/73f009bf-24ff-4200-a4ef-4660ee0ea08f/image.png',
+    curriculumSyllabusUrl: 'https://cs50.harvard.edu/x/',
+    prerequisites: ['No prior programming background required', 'Curiosity and high dedication'],
+    preparationHours: '100 - 120 Hours (Self-paced, flexible)',
+    academicCreditEquivalency: '4 Core Computer Science Credits (Elective/Honours Option)',
+
+    eligibility: 'Open to all students across all academic years and departments',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA', 'BCA', 'B.Sc'],
+    eligibleYears: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'ECE', 'AI/ML', 'Mechanical', 'Civil'],
+    skillsRequired: ['Algorithmic Thinking', 'Problem Solving', 'Computer Science Fundamentals'],
+    technologies: ['C', 'Python', 'SQL', 'Flask', 'JavaScript', 'HTML5', 'Git', 'Linux'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://cs50.harvard.edu/x/',
+    applicationUrl: 'https://www.edx.org/course/introduction-computer-science-harvardx-cs50x',
+    contactEmail: 'cs-office@resora.edu',
+    source: 'Harvard Online University Initiative',
+    isVerified: true,
+    isFeatured: true,
+    saved: true,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [
+      {
+        id: 'rec_cs50_01',
+        opportunityId: 'course-harvard-cs50',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 2,
+        targetYearLabel: '2nd Year',
+        message: 'The finest computer science foundation course ever produced. Every software engineer must take CS50x.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      },
+      {
+        id: 'rec_cs50_02',
+        opportunityId: 'course-harvard-cs50',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 3,
+        targetYearLabel: '3rd Year',
+        message: 'Directly validates low-level memory mastery (C) and full-stack systems for tier-1 tech interviews.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      }
+    ],
+    description: 'An introduction to the intellectual enterprises of computer science and the art of programming from Harvard University. Master C, Python, SQL, web technologies, and software engineering.',
+    shortDescription: 'Harvard University’s iconic computer science course by Prof. David J. Malan with 100% free verified certificate.',
+    tags: ['Harvard', 'CS50', 'Computer Science', 'C', 'Python', 'Web Dev', 'Specialization']
+  },
+  {
+    id: 'course-ibm-datascience',
+    title: 'IBM Data Science & AI Professional Certificate (10-Course Series)',
+    organization: 'IBM Skills Network',
+    organizer: 'Alex Aklson & Rav Ahuja',
+    logoUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Data Science, Machine Learning & Cloud Analytics',
+    mode: 'Online Self-Paced with Hands-on Cloud Labs',
+    workMode: 'Online',
+    location: 'IBM Cloud / Coursera Campus',
+    startDate: '2026-10-18',
+    endDate: '2027-02-15',
+    deadline: '15 Feb 2027',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Alex Aklson, Ph.D. & Rav Ahuja',
+    instructorTitle: 'Global Program Director, Data Science & Cognitive Solutions, IBM',
+    learningPlatform: 'Coursera Campus & IBM Watson Studio',
+    totalCoursesCount: 6,
+    enrolledStudentsCount: 295,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'Predicting SpaceX Falcon 9 First Stage Landing Success with ML & Dash',
+
+    courseModules: [
+      {
+        moduleNumber: 1,
+        title: 'What is Data Science & Data Methodology',
+        duration: '3 Weeks (10 Hours)',
+        topics: [
+          'Data science in business, healthcare, finance & technology',
+          'The 10 stages of the data science methodology',
+          'Defining analytic requirements and formulating hypotheses'
+        ],
+        skillsGained: ['Data Methodology', 'Analytical Thinking', 'Hypothesis Testing']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Tools for Data Science & Jupyter Cloud Workspaces',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Cloud IDEs: Jupyter Notebooks, RStudio & Zeppelin',
+          'Version control collaboration using GitHub and GitLab',
+          'Deploying models and managing datasets in IBM Watson Studio'
+        ],
+        skillsGained: ['Jupyter', 'IBM Watson Studio', 'GitHub', 'Cloud Notebooks']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Python for Data Science, AI & Web Scraping',
+        duration: '4 Weeks (16 Hours)',
+        topics: [
+          'Python data structures (lists, tuples, dicts, numpy arrays)',
+          'Reading CSV, JSON, and Parquet data pipelines with Pandas',
+          'Web scraping HTML tables with BeautifulSoup and Requests API'
+        ],
+        skillsGained: ['Python', 'Pandas', 'NumPy', 'Web Scraping', 'BeautifulSoup']
+      },
+      {
+        moduleNumber: 4,
+        title: 'Databases and SQL for Data Science with Python',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Relational database architecture and cloud databases (IBM Db2, PostgreSQL)',
+          'Complex joins, aggregate functions, subqueries and views',
+          'Accessing SQL databases directly via Python DB-API and SQLAlchemy'
+        ],
+        skillsGained: ['SQL', 'Relational Queries', 'Database Connectors', 'Data Extraction']
+      },
+      {
+        moduleNumber: 5,
+        title: 'Data Visualization & Exploratory Analysis with Python',
+        duration: '3 Weeks (14 Hours)',
+        topics: [
+          'Histograms, bar charts, scatter plots with Matplotlib and Seaborn',
+          'Geospatial interactive maps using Folium and geoJSON',
+          'Building reactive web dashboard user interfaces with Plotly Dash'
+        ],
+        skillsGained: ['Data Visualization', 'Plotly Dash', 'Matplotlib', 'Folium Maps']
+      },
+      {
+        moduleNumber: 6,
+        title: 'Applied Data Science & Machine Learning Capstone',
+        duration: '4 Weeks (20 Hours)',
+        topics: [
+          'SpaceX REST API data collection & EDA on launch success telemetry',
+          'Feature engineering, one-hot encoding, and correlation matrix analysis',
+          'Building Logistic Regression, SVM, Decision Tree & KNN classification models',
+          'Publishing an interactive Plotly Dash analytical application'
+        ],
+        skillsGained: ['Machine Learning', 'Predictive Modeling', 'Model Evaluation', 'SpaceX Telemetry'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'IBM',
+    certificationLevel: 'Professional Certificate',
+    examCode: 'IBM-DSC-PRO',
+    examDurationMinutes: 120,
+    passingScore: '75% on Graded Quizzes & Peer-graded Capstone Project',
+    examFormat: 'Cloud Lab Submissions & Peer-reviewed Jupyter Notebooks',
+    voucherDiscount: '100% Free IBM Enterprise License via Resora',
+    voucherCode: 'IBM-RESORA-DS26',
+    examFee: 'Free (Sponsored by Resora University)',
+    credentialValidity: 'Lifetime IBM Digital Badge (Credly Verified)',
+    badgeUrl: 'https://images.credly.com/images/8b8e66d7-6aab-4720-9943-22877a16f491/image.png',
+    curriculumSyllabusUrl: 'https://www.coursera.org/professional-certificates/ibm-data-science',
+    prerequisites: ['Basic high school mathematics', 'No computer science or coding background required'],
+    preparationHours: '80 - 90 Hours over 10 - 12 Weeks',
+    academicCreditEquivalency: '3 Open Elective Credits (Semester 6 or 7)',
+
+    eligibility: 'All Engineering, Science and Management students',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'B.Sc', 'MCA'],
+    eligibleYears: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'AI/ML', 'Data Science', 'ECE', 'Mechanical'],
+    skillsRequired: ['Python', 'SQL', 'Data Analysis', 'Data Visualization', 'Machine Learning'],
+    technologies: ['Python', 'Pandas', 'Scikit-Learn', 'Plotly Dash', 'IBM Watson', 'SQL'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://www.coursera.org/professional-certificates/ibm-data-science',
+    applicationUrl: 'https://www.coursera.org/programs/resora-campus',
+    contactEmail: 'datascience-lab@resora.edu',
+    source: 'IBM Academic Initiative Partner',
+    isVerified: true,
+    isFeatured: false,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'Get job-ready for a career in data science. Learn Python, SQL, data analysis, interactive data visualization, and predictive machine learning models with hands-on labs on IBM Watson Cloud.',
+    shortDescription: 'Comprehensive industry professional certificate by IBM with real-world SpaceX capstone project.',
+    tags: ['IBM', 'Data Science', 'Machine Learning', 'Python', 'SQL', 'Specialization']
+  },
+  {
+    id: 'course-nptel-daa',
+    title: 'Design and Analysis of Algorithms (Elite + Gold Certification)',
+    organization: 'NPTEL & IIT Kharagpur',
+    organizer: 'Prof. Madhavan Mukund',
+    logoUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Advanced Algorithms, Graph Theory & Complexity',
+    mode: 'Weekly Video Lectures + Proctored Center Exam',
+    workMode: 'Hybrid',
+    location: 'SWAYAM NPTEL / TCS iON Proctored Exam Center',
+    startDate: '2026-10-25',
+    endDate: '2026-12-28',
+    deadline: '28 Dec 2026',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Prof. Madhavan Mukund',
+    instructorTitle: 'Director, Chennai Mathematical Institute & NPTEL Algorithm Lead, IIT Kharagpur',
+    learningPlatform: 'NPTEL / SWAYAM (Govt. of India)',
+    totalCoursesCount: 8,
+    enrolledStudentsCount: 620,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'National Proctored Exam at TCS iON Center + Weekly Coding Assignments',
+
+    courseModules: [
+      {
+        moduleNumber: 1,
+        title: 'Algorithmic Complexity & Recurrence Relations',
+        duration: 'Week 1-2 (12 Hours)',
+        topics: [
+          'Asymptotic order of growth: Big-O, Omega, Theta definitions and proofs',
+          'Analyzing iterative algorithms & nested loop bounds',
+          'Solving recurrences: Master Theorem, recursion trees, substitution method'
+        ],
+        skillsGained: ['Asymptotic Analysis', 'Master Theorem', 'Recurrences']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Divide-and-Conquer & Advanced Sorting Paradigms',
+        duration: 'Week 3 (8 Hours)',
+        topics: [
+          'Merge sort, Quicksort and randomized pivot selection',
+          'Median finding in linear time (Median-of-medians algorithm)',
+          'Strassen’s algorithm for matrix multiplication and fast integer multiplication'
+        ],
+        skillsGained: ['Divide & Conquer', 'Randomized Algorithms', 'Matrix Multiplication']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Graph Traversals, Connectivity & DAGs',
+        duration: 'Week 4 (10 Hours)',
+        topics: [
+          'Breadth-First Search (BFS) and Depth-First Search (DFS) properties',
+          'Topological sorting in Directed Acyclic Graphs (DAGs)',
+          'Kosaraju and Tarjan algorithms for Strongly Connected Components (SCCs)'
+        ],
+        skillsGained: ['Graph Theory', 'DFS/BFS', 'Topological Sorting', 'Strong Connectivity']
+      },
+      {
+        moduleNumber: 4,
+        title: 'Greedy Algorithms, Priority Queues & Spanning Trees',
+        duration: 'Week 5 (10 Hours)',
+        topics: [
+          'Greedy-choice property and optimal substructure proofs',
+          'Single-source shortest paths: Dijkstra’s algorithm with binary and Fibonacci heaps',
+          'Minimum Spanning Trees: Prim’s and Kruskal’s algorithms with Union-Find disjoint sets',
+          'Huffman coding for lossless data compression'
+        ],
+        skillsGained: ['Greedy Paradigms', 'Dijkstra', 'MST (Prim/Kruskal)', 'Huffman Coding']
+      },
+      {
+        moduleNumber: 5,
+        title: 'Dynamic Programming Paradigms & Optimal Substructure',
+        duration: 'Week 6 (12 Hours)',
+        topics: [
+          'Overlapping subproblems and memoization vs bottom-up tabulation',
+          '0/1 Knapsack, Unbounded Knapsack, Longest Common Subsequence (LCS)',
+          'Matrix Chain Multiplication and Longest Increasing Subsequence',
+          'All-pairs shortest paths: Bellman-Ford, Floyd-Warshall algorithms'
+        ],
+        skillsGained: ['Dynamic Programming', 'Memoization', 'Floyd-Warshall', 'LCS/Knapsack']
+      },
+      {
+        moduleNumber: 6,
+        title: 'Network Flows & Maximum Bipartite Matching',
+        duration: 'Week 7 (10 Hours)',
+        topics: [
+          'Flow networks, residual capacity, augmenting paths and cuts',
+          'Max-Flow Min-Cut Theorem and Ford-Fulkerson algorithm',
+          'Edmonds-Karp algorithm (BFS augmentation) in O(V E^2)',
+          'Max cardinality bipartite matching and circulation with demands'
+        ],
+        skillsGained: ['Network Flows', 'Ford-Fulkerson', 'Bipartite Matching', 'Min-Cut Theorem']
+      },
+      {
+        moduleNumber: 7,
+        title: 'Intractability, NP-Completeness & Reductions',
+        duration: 'Week 8 (10 Hours)',
+        topics: [
+          'Classes P, NP, NP-Hard, and NP-Complete definitions',
+          'Polynomial-time verifiers and polynomial-time reductions',
+          'Cook-Levin Theorem, 3-SAT, Vertex Cover, Clique, and Independent Set reductions'
+        ],
+        skillsGained: ['Computational Complexity', 'P vs NP', 'Polynomial Reductions', 'NP-Completeness']
+      },
+      {
+        moduleNumber: 8,
+        title: 'Approximation Algorithms & National Exam Preparation',
+        duration: 'Week 8 (8 Hours)',
+        topics: [
+          'Approximation ratios: 2-approximation for Vertex Cover and Metric TSP',
+          'Greedy Set Cover approximation with logarithmic bounds',
+          'Comprehensive assignment walkthrough and mock proctored examination'
+        ],
+        skillsGained: ['Approximation Algorithms', 'TSP Heuristics', 'Exam Mastery'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'NPTEL / IIT Kharagpur',
+    certificationLevel: 'Elite + Gold (Academic Honors)',
+    examCode: 'NPTEL-CS-DAA',
+    examDurationMinutes: 180,
+    passingScore: 'Elite: >= 60% | Elite+Silver: >= 75% | Elite+Gold: >= 90%',
+    examFormat: 'Offline In-Person Center Exam (TCS iON) + 8 Online Weekly Assignments',
+    voucherDiscount: '100% University Exam Fee Reimbursement for Elite Scorers',
+    voucherCode: 'NPTEL-RESORA-REIMBURSE',
+    examFee: '₹1,000 (100% Reimbursed by Resora Academic Office upon passing)',
+    credentialValidity: 'Lifetime Official AICTE-Recognized Faculty & Student Certificate',
+    badgeUrl: 'https://images.credly.com/images/3f8216ef-e987-4d43-a621-c42a2254f158/image.png',
+    curriculumSyllabusUrl: 'https://nptel.ac.in/courses/106106131',
+    prerequisites: ['Basic Discrete Mathematics', 'C / C++ / Python coding fluency', 'Data Structures (Stacks, Queues, Trees)'],
+    preparationHours: '60 Hours over 8 Weeks',
+    academicCreditEquivalency: '4 Core Credits (Direct Credit Transfer in lieu of CS302 DAA)',
+
+    eligibility: 'Mandatory for 2nd and 3rd Year B.Tech CSE, IT & AI students; open to all STEM',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'AI/ML', 'ECE', 'Data Science'],
+    skillsRequired: ['Algorithm Design', 'Data Structures', 'Proof Techniques', 'C++/Python'],
+    technologies: ['C++', 'Python', 'Algorithms', 'Graph Theory', 'Dynamic Programming'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://nptel.ac.in/courses/106106131',
+    applicationUrl: 'https://swayam.gov.in/nc_details/NPTEL',
+    contactEmail: 'nptel-coordinator@resora.edu',
+    source: 'National Programme on Technology Enhanced Learning (IITs)',
+    isVerified: true,
+    isFeatured: true,
+    saved: true,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [
+      {
+        id: 'rec_nptel_01',
+        opportunityId: 'course-nptel-daa',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 2,
+        targetYearLabel: '2nd Year',
+        message: 'Direct transfer for your semester DAA paper! Achieve Elite score and Resora will refund your exam fee 100%.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      },
+      {
+        id: 'rec_nptel_02',
+        opportunityId: 'course-nptel-daa',
+        facultyId: 'fac_01',
+        facultyName: 'Dr. S. Rao',
+        targetYear: 3,
+        targetYearLabel: '3rd Year',
+        message: 'Critical for GATE CS preparation and MAANG technical coding rounds.',
+        recommendedAt: '2026-10-01',
+        isActive: true,
+      }
+    ],
+    description: 'The premier algorithms course by Prof. Madhavan Mukund under IIT Kharagpur & CMI. Direct AICTE credit transfer of 4 credits in lieu of college DAA course.',
+    shortDescription: 'Elite AICTE-approved 4-credit algorithms course by Prof. Madhavan Mukund with 100% exam fee reimbursement.',
+    tags: ['NPTEL', 'Algorithms', 'IIT Kharagpur', 'DAA', 'GATE', 'Credit Transfer']
+  },
+  {
+    id: 'course-stanford-ml',
+    title: 'Machine Learning Specialization (Stanford Online & DeepLearning.AI)',
+    organization: 'Stanford Online',
+    organizer: 'Prof. Andrew Ng & Eddy Shyu',
+    logoUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Machine Learning, Neural Networks & Reinforcement Learning',
+    mode: 'Self-Paced with Python Graded Notebooks',
+    workMode: 'Online',
+    location: 'Stanford Online / Coursera Campus',
+    startDate: '2026-10-12',
+    endDate: '2027-01-20',
+    deadline: '20 Jan 2027',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Prof. Andrew Ng & Eddy Shyu',
+    instructorTitle: 'Adjunct Professor of Computer Science at Stanford University',
+    learningPlatform: 'Coursera Campus & Stanford Online',
+    totalCoursesCount: 3,
+    enrolledStudentsCount: 388,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'Autonomous Lunar Lander Control Agent with Deep Q-Learning (DQN)',
+
+    courseModules: [
+      {
+        moduleNumber: 1,
+        title: 'Supervised Machine Learning: Regression and Classification',
+        duration: '3 Weeks (14 Hours)',
+        topics: [
+          'Linear regression with single and multiple variables',
+          'Cost functions, contour plots, and Gradient Descent convergence',
+          'Logistic regression, decision boundaries & Sigmoid loss calculus',
+          'Preventing overfitting with L2 regularization penalty terms'
+        ],
+        skillsGained: ['Linear Regression', 'Logistic Regression', 'Gradient Descent', 'Regularization']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Advanced Learning Algorithms',
+        duration: '4 Weeks (18 Hours)',
+        topics: [
+          'Multi-layer Artificial Neural Networks forward inference in NumPy and TensorFlow',
+          'Multiclass classification with Softmax output activation',
+          'Decision Trees, Entropy, Information Gain and XGBoost ensembles',
+          'Diagnostics: High bias (underfitting) vs High variance (overfitting) learning curves'
+        ],
+        skillsGained: ['Neural Networks', 'TensorFlow', 'Decision Trees', 'XGBoost', 'Model Diagnostics']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Unsupervised Learning, Recommenders & Reinforcement Learning',
+        duration: '3 Weeks (16 Hours)',
+        topics: [
+          'K-Means clustering algorithm & Anomaly detection with Gaussian distributions',
+          'Collaborative filtering and content-based recommendation systems',
+          'Reinforcement Learning foundations: States, Actions, Bellman Equation & Q-Learning',
+          'Deep Q-Networks (DQN) for continuous control tasks'
+        ],
+        skillsGained: ['Unsupervised Learning', 'Recommender Systems', 'Reinforcement Learning', 'Deep Q-Networks'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'Stanford Online',
+    certificationLevel: 'Specialization Certificate',
+    examCode: 'STANFORD-MLS-3',
+    examDurationMinutes: 120,
+    passingScore: '80% on all Python Programming Labs & Theoretical Quizzes',
+    examFormat: 'Interactive Jupyter Notebook Graded Labs',
+    voucherDiscount: '100% Free Campus Coursera License',
+    voucherCode: 'STANFORD-RESORA-ML26',
+    examFee: 'Free (Waived for Resora Students)',
+    credentialValidity: 'Lifetime Official Stanford Online Verified Credential',
+    badgeUrl: 'https://images.credly.com/images/0e284c41-3b7c-4ab4-86e1-953eb11b2cb8/image.png',
+    curriculumSyllabusUrl: 'https://online.stanford.edu/programs/machine-learning-specialization',
+    prerequisites: ['Basic Python programming', 'Introductory high school algebra'],
+    preparationHours: '50 - 60 Hours over 6 - 8 Weeks',
+    academicCreditEquivalency: '3 Core Credits in Machine Learning Elective Track',
+
+    eligibility: 'All 2nd, 3rd, and 4th Year B.Tech & M.Tech students',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'MCA', 'B.Sc'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'AI/ML', 'Data Science', 'ECE', 'IT', 'EEE'],
+    skillsRequired: ['Python', 'NumPy', 'Maths for ML', 'TensorFlow basics'],
+    technologies: ['Python', 'TensorFlow', 'NumPy', 'XGBoost', 'Scikit-Learn'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://online.stanford.edu/programs/machine-learning-specialization',
+    applicationUrl: 'https://www.coursera.org/programs/resora-campus',
+    contactEmail: 'ai-programs@resora.edu',
+    source: 'Stanford Online Academic Partnership',
+    isVerified: true,
+    isFeatured: true,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'Re-engineered from Andrew Ng’s foundational Stanford Machine Learning course. Master practical supervised learning, neural networks, decision trees, recommenders, and reinforcement learning.',
+    shortDescription: 'The updated 2026 Stanford Machine Learning series by Prof. Andrew Ng with 100% free institutional access.',
+    tags: ['Stanford', 'Prof. Andrew Ng', 'Machine Learning', 'TensorFlow', 'AI', 'Specialization']
+  },
+  {
+    id: 'course-mit-computational',
+    title: 'Computational Thinking and Data Science (6.00.2x)',
+    organization: 'MITx (Massachusetts Institute of Technology)',
+    organizer: 'Prof. John Guttag & Prof. Eric Grimson',
+    logoUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120&auto=format&fit=crop&q=80',
+    type: 'CERTIFICATION',
+    category: 'Scientific Computing, Monte Carlo & Stochastic Modeling',
+    mode: 'Self-Paced with Python Finger Exercises',
+    workMode: 'Online',
+    location: 'edX / MITx Platform',
+    startDate: '2026-10-15',
+    endDate: '2027-01-10',
+    deadline: '10 Jan 2027',
+
+    // Course Specifics
+    isCourseSeries: true,
+    instructorName: 'Prof. John Guttag & Prof. Eric Grimson',
+    instructorTitle: 'Dugald C. Jackson Professor of Computer Science and Engineering, MIT',
+    learningPlatform: 'edX / MITx Online',
+    totalCoursesCount: 5,
+    enrolledStudentsCount: 275,
+    hasFinancialAidOrLicense: true,
+    capstoneProject: 'Simulating Viral Epidemic Spread & Dynamic Healthcare Modeling in Python',
+
+    courseModules: [
+      {
+        moduleNumber: 1,
+        title: 'Optimization Problems & Graph Theory in Python',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Knapsack problems: Greedy approximations vs 0/1 Dynamic Programming solutions',
+          'Graph representations in Python: Adjacency list and matrix graphs',
+          'Breadth-First and Depth-First search with shortest path constraints'
+        ],
+        skillsGained: ['Optimization', 'Graph Theory', 'Dynamic Programming', 'Python']
+      },
+      {
+        moduleNumber: 2,
+        title: 'Stochastic Programs, Probability & Monte Carlo Simulations',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Deterministic vs stochastic programs and pseudorandom number generators',
+          'Simulating random walks, drunkard’s walk, and Brownian motion',
+          'Monte Carlo simulations to compute pi and roulette odds',
+          'Histograms, empirical distributions and the Law of Large Numbers'
+        ],
+        skillsGained: ['Monte Carlo Simulation', 'Probability', 'Random Walks', 'Data Science']
+      },
+      {
+        moduleNumber: 3,
+        title: 'Inferential Statistics, Confidence Intervals & Regression',
+        duration: '3 Weeks (12 Hours)',
+        topics: [
+          'Central Limit Theorem and standard error of the mean',
+          'Confidence intervals, sampling error, and student t-distributions',
+          'Linear regression curve fitting with polyfit and coefficient of determination (R^2)'
+        ],
+        skillsGained: ['Inferential Statistics', 'Central Limit Theorem', 'Curve Fitting', 'Regression']
+      },
+      {
+        moduleNumber: 4,
+        title: 'Machine Learning & Clustering Algorithms',
+        duration: '2 Weeks (8 Hours)',
+        topics: [
+          'Feature representations, Minkowski distance metrics, and normalization',
+          'Hierarchical clustering vs K-Means clustering algorithm',
+          'Evaluating cluster quality with inter-cluster and intra-cluster distances'
+        ],
+        skillsGained: ['Machine Learning', 'Clustering', 'Distance Metrics', 'Feature Engineering']
+      },
+      {
+        moduleNumber: 5,
+        title: 'Statistical Fallacies, Dynamic Simulation & Final Capstone',
+        duration: '2 Weeks (12 Hours)',
+        topics: [
+          'P-hacking, correlation vs causation, and Texas sharpshooter fallacy',
+          'Simulating viral epidemic spread and dynamic healthcare resource allocation in Python',
+          'Final comprehensive MITx problem set submission and code review'
+        ],
+        skillsGained: ['Scientific Modeling', 'Epidemic Simulation', 'Statistical Rigor'],
+        isCapstone: true
+      }
+    ],
+
+    // Certification & Credit Fields
+    certificationProvider: 'MITx',
+    certificationLevel: 'Verified Professional Certificate',
+    examCode: 'MITX-6.00.2X',
+    examDurationMinutes: 150,
+    passingScore: '70% on Finger Exercises, Midterm and Final Exam',
+    examFormat: 'Python Automated Code Judge & Mathematical Proofs',
+    voucherDiscount: '100% Free MITx Verified Track via Campus Grant',
+    voucherCode: 'MITX-RESORA-VERIFIED',
+    examFee: 'Free ($149 fee waived for Resora Students)',
+    credentialValidity: 'Lifetime Official MITx Verified Certificate',
+    badgeUrl: 'https://images.credly.com/images/73f009bf-24ff-4200-a4ef-4660ee0ea08f/image.png',
+    curriculumSyllabusUrl: 'https://www.edx.org/course/introduction-to-computational-thinking-and-data-4',
+    prerequisites: ['Prior introductory Python programming (MIT 6.00.1x equivalent)'],
+    preparationHours: '60 Hours over 8 Weeks',
+    academicCreditEquivalency: '3 Elective Credits in Scientific Computing / Data Analysis',
+
+    eligibility: 'Open to all Engineering & Science students',
+    eligibleDegrees: ['B.Tech', 'B.E', 'M.Tech', 'B.Sc', 'MCA'],
+    eligibleYears: ['2nd Year', '3rd Year', '4th Year'],
+    eligibleDepartments: ['CSE', 'IT', 'ECE', 'AI/ML', 'Mechanical', 'Civil'],
+    skillsRequired: ['Python', 'Data Structures', 'Basic Calculus', 'Statistics'],
+    technologies: ['Python', 'Matplotlib', 'NumPy', 'SciPy', 'Monte Carlo'],
+
+    registrationStatus: 'OPEN',
+    officialWebsiteUrl: 'https://www.edx.org/course/introduction-to-computational-thinking-and-data-4',
+    applicationUrl: 'https://www.edx.org/school/mitx',
+    contactEmail: 'mitx-desk@resora.edu',
+    source: 'MITx Academic Grant Network',
+    isVerified: true,
+    isFeatured: false,
+    saved: false,
+    applied: false,
+    visibility: 'PUBLIC',
+    recommendations: [],
+    description: 'Learn how to use computation to accomplish real-world data science goals. Covers optimization, dynamic programming, Monte Carlo simulations, stochastic modeling, and statistical fallacies.',
+    shortDescription: 'World-renowned MITx computer science & computational data modeling course with 100% campus voucher.',
+    tags: ['MIT', 'Data Science', 'Python', 'Monte Carlo', 'Computational Thinking', 'Specialization']
   }
 ];
 
@@ -800,3 +2129,570 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     details: 'Opened usage permissions to CSE & EEE students.',
   }
 ];
+
+// ==========================================
+// CAMPUS CLUBS MOCK DATA
+// ==========================================
+
+export const INITIAL_CAMPUS_CLUBS: CampusClub[] = [
+  {
+    id: 'club_gdsc',
+    name: 'Google Developer Groups on Campus (GDSC)',
+    shortCode: 'GDSC',
+    tagline: 'Innovate, Code & Solve Real-World Problems with Google Tech',
+    description: 'A student-led community backed by Google Developers. We organize hands-on cloud study jams, Android bootcamps, Google Solution Challenge hackathons, and open-source contributions.',
+    category: 'TECHNICAL',
+    categoryLabel: 'Technical & Developer Community',
+    foundedYear: 2021,
+    memberCount: 485,
+    rating: 4.9,
+    tier: 'TIER_1_OFFICIAL',
+    bannerGradient: 'from-blue-600 via-indigo-600 to-sky-500',
+    facultyMentor: {
+      name: 'Dr. S. Rao',
+      designation: 'Professor & Head of Department',
+      department: 'Computer Science & Engineering',
+    },
+    president: {
+      name: 'Pooja Verma',
+      year: 'Final Year',
+      rollNumber: 'CSE-2022-019',
+      email: 'pooja.verma@resora.edu',
+    },
+    regularMeetup: {
+      frequency: 'Every Wednesday',
+      time: '04:30 PM - 06:00 PM',
+      location: 'Innovation Hub Room 302 & Discord',
+    },
+    achievements: [
+      'Top 100 Global Finalist in Google Solution Challenge 2025',
+      'Hosted Flutter & GenAI Hackathon with 350+ attendees',
+      'Trained 200+ students on Google Cloud Platform foundations',
+    ],
+    socialLinks: {
+      linkedin: 'https://linkedin.com/company/gdsc-resora',
+      github: 'https://github.com/gdsc-resora',
+      discord: 'https://discord.gg/gdsc-resora',
+    },
+    activeRecruitments: [
+      {
+        id: 'rec_gdsc_01',
+        roleTitle: 'GenAI & Cloud Lead',
+        department: 'Technical Wing',
+        openings: 2,
+        deadline: 'Oct 25, 2026',
+        eligibility: '2nd & 3rd Year (CSE/IT/ECE)',
+        description: 'Lead Google Cloud Study Jams, conduct Vertex AI workshops, and mentor students for the Solution Challenge.',
+      },
+      {
+        id: 'rec_gdsc_02',
+        roleTitle: 'Web & Mobile Dev Core Associate',
+        department: 'Development Wing',
+        openings: 3,
+        deadline: 'Oct 25, 2026',
+        eligibility: 'Open to All Branches (1st-3rd Year)',
+        description: 'Build community open-source projects using Next.js, React Native, and Flutter.',
+      },
+    ],
+    isJoined: true,
+    userRole: 'Active Member (Cloud Track)',
+  },
+  {
+    id: 'club_robo',
+    name: 'Robotics & Automation Society (RAS)',
+    shortCode: 'ROBO-CLUB',
+    tagline: 'Designing Autonomous Drones, Rovers & Smart Embedded Systems',
+    description: 'Premier hardware and robotics lab group. We design combat bots, agricultural rovers, autonomous quadcopters, and IoT smart campus sensors competing at IIT Techfest & Robocon.',
+    category: 'ROBOTICS',
+    categoryLabel: 'Robotics & Hardware Labs',
+    foundedYear: 2019,
+    memberCount: 290,
+    rating: 4.8,
+    tier: 'TIER_1_OFFICIAL',
+    bannerGradient: 'from-cyan-600 via-teal-700 to-slate-900',
+    facultyMentor: {
+      name: 'Dr. K. Ananth',
+      designation: 'Associate Professor',
+      department: 'ECE & Mechatronics',
+    },
+    president: {
+      name: 'Aditya Shenoy',
+      year: 'Final Year',
+      rollNumber: 'ECE-2022-088',
+      email: 'aditya.shenoy@resora.edu',
+    },
+    regularMeetup: {
+      frequency: 'Every Thursday',
+      time: '04:00 PM - 06:30 PM',
+      location: 'IoT & Prototyping Lab (Block C)',
+    },
+    achievements: [
+      '1st Place at National Rover Challenge (IIT Madras Shaastra)',
+      'Deployed Autonomous Campus Delivery Rover Prototype',
+      'Published 2 IEEE Sensors Letters Research Papers',
+    ],
+    socialLinks: {
+      linkedin: 'https://linkedin.com/company/resora-ras',
+      github: 'https://github.com/resora-ras',
+    },
+    activeRecruitments: [
+      {
+        id: 'rec_robo_01',
+        roleTitle: 'ROS & Computer Vision Specialist',
+        department: 'Autonomous Systems',
+        openings: 2,
+        deadline: 'Oct 28, 2026',
+        eligibility: '2nd & 3rd Year Students',
+        description: 'Work with ROS2, OpenCV, and LiDAR SLAM mapping for our 2027 Rover team.',
+      },
+    ],
+    isJoined: false,
+  },
+  {
+    id: 'club_ecell',
+    name: 'E-Cell Resora (Entrepreneurship & Venture Development)',
+    shortCode: 'E-CELL',
+    tagline: 'Igniting Student Ventures, Incubating Startups & Angel Connections',
+    description: 'The premier student entrepreneurship cell fostering startup culture. We run the annual Campus PitchTank, host founder AMAs, and facilitate seed grants through university incubation.',
+    category: 'ENTREPRENEURSHIP',
+    categoryLabel: 'Startups & Business Innovation',
+    foundedYear: 2020,
+    memberCount: 340,
+    rating: 4.9,
+    tier: 'TIER_1_OFFICIAL',
+    bannerGradient: 'from-amber-600 via-orange-600 to-rose-700',
+    facultyMentor: {
+      name: 'Prof. Meenakshi Sundaram',
+      designation: 'Director of Innovation & Incubation',
+      department: 'Management & Tech',
+    },
+    president: {
+      name: 'Rohan Deshmukh',
+      year: '3rd Year',
+      rollNumber: 'CSE-2023-014',
+      email: 'rohan.deshmukh@resora.edu',
+    },
+    regularMeetup: {
+      frequency: 'Bi-Weekly Saturday',
+      time: '11:00 AM - 01:00 PM',
+      location: 'Incubation Center Boardroom (Block B)',
+    },
+    achievements: [
+      'Incubated 7 active student-founded tech startups',
+      'Raised ₹42 Lakhs in angel pre-seed capital for student ventures',
+      'Organized Global Entrepreneurship Summit with 1,200+ attendees',
+    ],
+    socialLinks: {
+      linkedin: 'https://linkedin.com/company/ecell-resora',
+    },
+    activeRecruitments: [
+      {
+        id: 'rec_ecell_01',
+        roleTitle: 'Venture Incubation Associate',
+        department: 'Startup Operations',
+        openings: 3,
+        deadline: 'Oct 30, 2026',
+        eligibility: 'All Years (Any Stream)',
+        description: 'Interface with VC mentors, run pitch deck screening, and manage incubation grants.',
+      },
+    ],
+    isJoined: false,
+  },
+  {
+    id: 'club_algo',
+    name: 'Algo & Competitive Coding Club (AC3)',
+    shortCode: 'AC3',
+    tagline: 'Master DSA, High-Performance Systems & ICPC Rank Pushing',
+    description: 'The algorithmic core of the campus. Weekly code sprints, ICPC regional bootcamps, Codeforces contests analysis, and deep dives into system design and advanced data structures.',
+    category: 'TECHNICAL',
+    categoryLabel: 'Competitive Programming & DSA',
+    foundedYear: 2018,
+    memberCount: 540,
+    rating: 5.0,
+    tier: 'TIER_1_OFFICIAL',
+    bannerGradient: 'from-violet-600 via-purple-700 to-indigo-900',
+    facultyMentor: {
+      name: 'Dr. Radhakrishnan',
+      designation: 'Associate Professor',
+      department: 'CSE',
+    },
+    president: {
+      name: 'Aryan Reddy',
+      year: '3rd Year',
+      rollNumber: 'CSE-2023-042',
+      email: 'student@resora.demo',
+    },
+    regularMeetup: {
+      frequency: 'Every Tuesday & Friday',
+      time: '05:00 PM - 06:45 PM',
+      location: 'Central Computer Lab 2',
+    },
+    achievements: [
+      'Top 15 Rank at ACM-ICPC Amritapuri Regionals 2025',
+      'Over 60+ club alumni placed in FAANG/Tier-1 Product Companies',
+      'Weekly CodeSprint contest series with 300+ participants',
+    ],
+    socialLinks: {
+      github: 'https://github.com/ac3-resora',
+      discord: 'https://discord.gg/ac3-resora',
+    },
+    isJoined: true,
+    userRole: 'President & Competitive Lead',
+  },
+  {
+    id: 'club_crescendo',
+    name: 'Crescendo - Cultural, Music & Performing Arts Guild',
+    shortCode: 'CRESCENDO',
+    tagline: 'The Musical Heartbeat & Cultural Pulse of Campus Life',
+    description: 'Home to the college rock band, classical ensemble, western dance troupe, and theatre society. We organize the annual Kallola Fest, acoustic jam sessions, and drama productions.',
+    category: 'CULTURAL',
+    categoryLabel: 'Music, Dance & Fine Arts',
+    foundedYear: 2017,
+    memberCount: 420,
+    rating: 4.9,
+    tier: 'TIER_1_OFFICIAL',
+    bannerGradient: 'from-pink-600 via-rose-600 to-purple-800',
+    facultyMentor: {
+      name: 'Dr. Malini Iyer',
+      designation: 'Dean of Student Affairs',
+      department: 'Humanities & Sciences',
+    },
+    president: {
+      name: 'Sneha Nambiar',
+      year: 'Final Year',
+      rollNumber: 'ECE-2022-054',
+      email: 'sneha.nambiar@resora.edu',
+    },
+    regularMeetup: {
+      frequency: 'Every Monday & Wednesday',
+      time: '04:30 PM - 06:30 PM',
+      location: 'Amphitheatre & Music Studio (Student Center)',
+    },
+    achievements: [
+      'Best College Band at Mood Indigo (IIT Bombay 2025)',
+      'Organized Kallola MegaFest drawing 4,000+ campus visitors',
+      'Produced 12 original musical tracks and 3 short films',
+    ],
+    isJoined: false,
+  },
+  {
+    id: 'club_pixelcraft',
+    name: 'PixelCraft - UI/UX & Digital Media Society',
+    shortCode: 'PIXELCRAFT',
+    tagline: 'Design Thinking, Visual Aesthetics & 3D Interactive Media',
+    description: 'We bring together product designers, Figma creators, 3D artists (Blender/Spline), and cinematographers. We design all official university festival visual identities and UI platforms.',
+    category: 'MEDIA_DESIGN',
+    categoryLabel: 'Product Design & Creative Media',
+    foundedYear: 2022,
+    memberCount: 235,
+    rating: 4.8,
+    tier: 'TIER_2_DEPARTMENTAL',
+    bannerGradient: 'from-emerald-600 via-teal-600 to-slate-900',
+    facultyMentor: {
+      name: 'Prof. Harish Nair',
+      designation: 'Assistant Professor',
+      department: 'Design & Multimedia',
+    },
+    president: {
+      name: 'Ananya Roy',
+      year: '3rd Year',
+      rollNumber: 'CSE-2023-089',
+      email: 'ananya.roy@resora.edu',
+    },
+    regularMeetup: {
+      frequency: 'Every Friday',
+      time: '03:30 PM - 05:00 PM',
+      location: 'Design Lab Room 204 (Block B)',
+    },
+    achievements: [
+      'Redesigned University Portal UI gaining 98% student approval',
+      '1st Prize at National Figma Design Sprint 2025',
+    ],
+    isJoined: false,
+  },
+];
+
+// ==========================================
+// CAMPUS EVENTS MOCK DATA
+// ==========================================
+
+export const INITIAL_CAMPUS_EVENTS: CampusEvent[] = [
+  {
+    id: 'evt_01',
+    title: 'InnovateX 2026: 36-Hour National Hackathon',
+    tagline: 'Build Scalable AI, Web3 & Smart Hardware Solutions for Real-World Problems',
+    description: 'The flagship annual 36-hour hackathon bringing together 200+ top student developers, engineers, and designers. Compete across 4 exciting problem tracks with industry mentorship and instant investor scrutiny.',
+    detailedAgenda: [
+      'Day 1 - 09:00 AM: Keynote & Problem Statement Reveal by Industry Sponsors',
+      'Day 1 - 11:00 AM: Hacking Commences & Mentor Check-in Round 1',
+      'Day 1 - 09:00 PM: Midnight Code Review & Energy Lounge',
+      'Day 2 - 08:00 AM: Breakfast & Semifinal Prototype Evaluation',
+      'Day 2 - 03:00 PM: Grand Jury Pitches & Award Ceremony',
+    ],
+    clubId: 'club_gdsc',
+    clubName: 'Google Developer Groups (GDSC)',
+    category: 'HACKATHON',
+    categoryLabel: 'National Hackathon',
+    format: 'IN_PERSON',
+    date: 'Oct 24 - 25, 2026',
+    time: '09:00 AM (36 Hours Continuous)',
+    venue: 'Central Computing Complex & Innovation Hub',
+    capacity: 200,
+    registeredCount: 184,
+    registrationStatus: 'FAST_FILLING',
+    isOdApproved: true,
+    odHours: 'Official 2-Day OD Sanctioned (Friday + Saturday)',
+    entryFee: 'FREE',
+    eligibility: 'Open to All Engineering & Tech Students (Teams of 2-4)',
+    prerequisites: ['Bring Laptop & Chargers', 'GitHub Account', 'College ID Card'],
+    facultyCoordinator: {
+      name: 'Dr. S. Rao',
+      department: 'HOD Computer Science',
+      contact: 's.rao@resora.edu',
+    },
+    studentCoordinators: [
+      { name: 'Pooja Verma', role: 'Lead Organizer', phone: '+91 98450 12345' },
+      { name: 'Aryan Reddy', role: 'Technical Lead', phone: '+91 98765 11223' },
+    ],
+    speakers: [
+      { name: 'Vikram Chawla', role: 'Staff Software Engineer', company: 'Google Cloud' },
+      { name: 'Ananya Sen', role: 'Founding Partner', company: 'Nexus Ventures' },
+    ],
+    perks: [
+      '₹1,00,000 Total Cash Prize Pool',
+      'Full 2-Day On-Duty (OD) Attendance Sanctioned',
+      'All Meals, Midnight RedBull & Snacks Included',
+      'Direct Fast-Track Interview Rounds for Top 5 Teams',
+      'Certificate of Merit with Verifiable QR Code',
+    ],
+    isRegistered: true,
+    userTicketId: 'TKT-INNOVATEX-4921',
+  },
+  {
+    id: 'evt_02',
+    title: 'Autonomous Drone & ROS Robotics Bootcamp',
+    tagline: 'Hands-on Firmware Flashing, Computer Vision SLAM & Drone Flight Test',
+    description: 'An intensive 4-hour hands-on hardware workshop. Learn how to configure Robot Operating System (ROS2), run OpenCV object tracking on onboard microcomputers, and pilot autonomous obstacle-avoidance quadcopters in the campus flight cage.',
+    detailedAgenda: [
+      'Session 1: Drone Aerodynamics & Flight Controller Architecture (Betaflight & PX4)',
+      'Session 2: Real-time Object Tracking with Python & OpenCV Camera Stream',
+      'Session 3: Hands-on Flight Calibration & Obstacle Avoidance Simulation',
+      'Session 4: Live Flight Trials in the Amphitheatre Drone Cage',
+    ],
+    clubId: 'club_robo',
+    clubName: 'Robotics & Automation Society (RAS)',
+    category: 'WORKSHOP',
+    categoryLabel: 'Hands-on Hardware Workshop',
+    format: 'IN_PERSON',
+    date: 'Oct 19, 2026',
+    time: '02:00 PM - 06:00 PM',
+    venue: 'IoT & Prototyping Lab (Block C, Room 102)',
+    capacity: 50,
+    registeredCount: 38,
+    registrationStatus: 'OPEN',
+    isOdApproved: true,
+    odHours: 'Afternoon OD Granted (Post-Lunch Sessions)',
+    entryFee: 'FREE',
+    eligibility: 'Open to CSE, ECE, EEE & Mechanical Students (1st - 3rd Year)',
+    prerequisites: ['Laptop with Linux/WSL preferred', 'Basic C++/Python familiarity'],
+    facultyCoordinator: {
+      name: 'Dr. K. Ananth',
+      department: 'ECE Department',
+      contact: 'k.ananth@resora.edu',
+    },
+    studentCoordinators: [
+      { name: 'Aditya Shenoy', role: 'Robotics President', phone: '+91 97410 44321' },
+    ],
+    perks: [
+      'Hardware Prototyping Kits provided for session use',
+      'Afternoon OD Slip Generated Automatically upon Check-in',
+      'Official RAS Certificate of Completion',
+    ],
+    isRegistered: false,
+  },
+  {
+    id: 'evt_03',
+    title: 'Campus PitchTank: Seed Funding & Angel Investor Summit',
+    tagline: 'Pitch Your Startup to Real VCs & Compete for ₹5 Lakhs Seed Grants',
+    description: 'Have a technology startup or deep-tech product? Pitch directly to a panel of active angel investors, alumni entrepreneurs, and university incubation directors. Top 3 startups receive equity-free micro-grants and 6-month free incubation.',
+    clubId: 'club_ecell',
+    clubName: 'E-Cell Resora',
+    category: 'COMPETITION',
+    categoryLabel: 'Startup Pitch & Funding',
+    format: 'IN_PERSON',
+    date: 'Oct 28, 2026',
+    time: '10:00 AM - 04:30 PM',
+    venue: 'Main Auditorium & Executive Lounge',
+    capacity: 150,
+    registeredCount: 118,
+    registrationStatus: 'OPEN',
+    isOdApproved: true,
+    odHours: 'Full Day Official OD',
+    entryFee: 'FREE',
+    eligibility: 'Student Startups & Idea Stage Teams (All Years)',
+    facultyCoordinator: {
+      name: 'Prof. Meenakshi Sundaram',
+      department: 'Director of Incubation',
+    },
+    studentCoordinators: [
+      { name: 'Rohan Deshmukh', role: 'E-Cell President', phone: '+91 98840 99881' },
+    ],
+    perks: [
+      '₹5,00,000 Equity-Free University Incubation Grant',
+      'Direct Mentorship from Silicon Valley & Bengaluru Founders',
+      'Full-Day OD Sanctioned for All Presenters',
+    ],
+    isRegistered: false,
+  },
+  {
+    id: 'evt_04',
+    title: 'Full-Stack Next.js 14 & AI Agent Architecture Masterclass',
+    tagline: 'Build Scalable LLM-Powered Web Applications with Server Actions & RAG',
+    description: 'Learn modern web engineering from scratch to production: Server Components, Postgres Vector embeddings with pgvector, real-time streaming LLM responses, and deploying production workloads with zero cold starts.',
+    detailedAgenda: [
+      'Deep dive into Next.js App Router & Server Actions',
+      'Vector Databases, Embeddings & RAG Architecture',
+      'Multi-Agent orchestration with LangChain & LangGraph',
+      'Hands-on deployment to Edge nodes with SSL & Custom Domains',
+    ],
+    clubId: 'club_algo',
+    clubName: 'Algo & Competitive Coding Club (AC3)',
+    category: 'TECHNICAL',
+    categoryLabel: 'Tech Masterclass',
+    format: 'HYBRID',
+    date: 'Oct 16, 2026',
+    time: '03:00 PM - 06:00 PM',
+    venue: 'Seminar Hall 2 & Live Stream via Zoom',
+    capacity: 120,
+    registeredCount: 104,
+    registrationStatus: 'FAST_FILLING',
+    isOdApproved: true,
+    odHours: 'Afternoon Session OD (Period 5-7)',
+    entryFee: 'FREE',
+    eligibility: 'All Students interested in Web & AI Development',
+    prerequisites: ['Bring Laptop', 'Node.js 20+ installed', 'VS Code'],
+    facultyCoordinator: {
+      name: 'Dr. Radhakrishnan',
+      department: 'CSE Department',
+    },
+    studentCoordinators: [
+      { name: 'Aryan Reddy', role: 'AC3 Lead & Speaker', phone: '+91 98765 11223' },
+    ],
+    perks: [
+      'Complete Source Code & Architecture Templates on GitHub',
+      'Afternoon OD Clearance included',
+      'Free $50 OpenAI & Supabase Cloud Credits Voucher',
+    ],
+    isRegistered: true,
+    userTicketId: 'TKT-NEXTJS-3382',
+  },
+  {
+    id: 'evt_05',
+    title: 'Kallola 2026: Annual Inter-College Cultural Night & Band Battle',
+    tagline: 'Electrifying Live Music, Battle of the Bands, Street Play & Flashmobs',
+    description: 'The biggest evening of the semester! 8 college bands battle for the golden trophy, accompanied by western dance performances, beatboxing showdowns, and acoustic sunset sessions.',
+    clubId: 'club_crescendo',
+    clubName: 'Crescendo Cultural Guild',
+    category: 'CULTURAL',
+    categoryLabel: 'Mega Cultural Night',
+    format: 'IN_PERSON',
+    date: 'Nov 06, 2026',
+    time: '05:30 PM - 10:00 PM',
+    venue: 'Open Air Amphitheatre',
+    capacity: 800,
+    registeredCount: 642,
+    registrationStatus: 'OPEN',
+    isOdApproved: false,
+    entryFee: 'FREE',
+    eligibility: 'Open to All Students & Alumni with Valid College ID',
+    facultyCoordinator: {
+      name: 'Dr. Malini Iyer',
+      department: 'Dean of Student Affairs',
+    },
+    studentCoordinators: [
+      { name: 'Sneha Nambiar', role: 'Cultural Secretary', phone: '+91 99120 77654' },
+    ],
+    perks: [
+      'Live Concert Performance by Celebrity Guest Artist',
+      'Food Trucks & Creative Artisan Stalls',
+      'Free Entry with Verified QR Pass',
+    ],
+    isRegistered: false,
+  },
+  {
+    id: 'evt_06',
+    title: 'UI/UX Design Jam: Figma to Production Prototype in 4 Hours',
+    tagline: 'Design System Tokens, Micro-Interactions & Usability Testing',
+    description: 'Speed design challenge! Teams are given a real-world campus problem statement and have 4 hours to craft wireframes, high-fidelity prototypes, and design system components evaluated by Senior Product Designers.',
+    clubId: 'club_pixelcraft',
+    clubName: 'PixelCraft Media Society',
+    category: 'WORKSHOP',
+    categoryLabel: 'Design Sprint',
+    format: 'IN_PERSON',
+    date: 'Oct 22, 2026',
+    time: '01:30 PM - 05:30 PM',
+    venue: 'Design Lab (Block B, Room 204)',
+    capacity: 60,
+    registeredCount: 44,
+    registrationStatus: 'OPEN',
+    isOdApproved: true,
+    odHours: 'Afternoon OD Granted (1:30 PM to 5:30 PM)',
+    entryFee: 'FREE',
+    eligibility: 'Anyone passionate about UI, UX, Product Design & Figma',
+    facultyCoordinator: {
+      name: 'Prof. Harish Nair',
+      department: 'Design Department',
+    },
+    studentCoordinators: [
+      { name: 'Ananya Roy', role: 'Design Lead', phone: '+91 98110 55432' },
+    ],
+    perks: [
+      'Official Figma Swag & Prototyping License Vouchers',
+      'Afternoon OD Approved',
+      'Winning Design featured on Resora Campus Mobile App',
+    ],
+    isRegistered: false,
+  },
+];
+
+// ==========================================
+// INITIAL USER EVENT REGISTRATIONS
+// ==========================================
+
+export const INITIAL_EVENT_REGISTRATIONS: EventRegistration[] = [
+  {
+    id: 'reg_01',
+    ticketCode: 'TKT-INNOVATEX-4921',
+    eventId: 'evt_01',
+    eventTitle: 'InnovateX 2026: 36-Hour National Hackathon',
+    clubName: 'Google Developer Groups (GDSC)',
+    date: 'Oct 24 - 25, 2026',
+    time: '09:00 AM (36 Hours Continuous)',
+    venue: 'Central Computing Complex & Innovation Hub',
+    studentName: 'Aryan Reddy',
+    rollNumber: 'CSE-2023-042',
+    department: 'CSE (3rd Year)',
+    registeredAt: 'Oct 12, 2026 · 11:20 AM',
+    isOdApproved: true,
+    status: 'CONFIRMED',
+    qrPayload: 'RESORA-EVENT-TKT-INNOVATEX-4921-CSE-2023-042',
+  },
+  {
+    id: 'reg_02',
+    ticketCode: 'TKT-NEXTJS-3382',
+    eventId: 'evt_04',
+    eventTitle: 'Full-Stack Next.js 14 & AI Agent Architecture Masterclass',
+    clubName: 'Algo & Competitive Coding Club (AC3)',
+    date: 'Oct 16, 2026',
+    time: '03:00 PM - 06:00 PM',
+    venue: 'Seminar Hall 2 & Live Stream via Zoom',
+    studentName: 'Aryan Reddy',
+    rollNumber: 'CSE-2023-042',
+    department: 'CSE (3rd Year)',
+    registeredAt: 'Oct 13, 2026 · 04:15 PM',
+    isOdApproved: true,
+    status: 'CONFIRMED',
+    qrPayload: 'RESORA-EVENT-TKT-NEXTJS-3382-CSE-2023-042',
+  },
+];
+

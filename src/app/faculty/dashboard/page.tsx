@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function FacultyDashboard() {
-  const { currentUser, bookings, approveBooking, rejectBooking, projects } = useResora();
+  const { currentUser, bookings, approveBooking, rejectBooking } = useResora();
 
   // Pending bookings awaiting faculty approval
   const pendingApprovals = bookings.filter(b => b.status === 'PENDING');
@@ -91,11 +91,11 @@ export default function FacultyDashboard() {
 
             <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-soft flex items-center space-x-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-heading text-xl">
-                {projects.length}
+                4
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-semibold block">Student Projects</span>
-                <span className="text-sm font-bold text-slate-900">Under Mentorship</span>
+                <span className="text-xs text-slate-500 font-semibold block">Assigned Classes</span>
+                <span className="text-sm font-bold text-slate-900">Active Courses</span>
               </div>
             </div>
 

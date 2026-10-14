@@ -30,11 +30,59 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refresh the Supabase authentication session
-  if (typeof (supabase.auth as any).getClaims === 'function') {
-    await (supabase.auth as any).getClaims();
-  } else {
-    await supabase.auth.getUser();
+  // Refresh the Supabase authentication session and retrieve authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Safe redirect helper preventing open-redirect attacks
+  const isSafeRedirect = (url: string | null): boolean => {
+    if (!url) return false;
+    return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
+  };
+
+  const isDemoMode = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+
+  // Protected route groups: /admin/*, /faculty/*, /student/*
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isFacultyRoute = pathname.startsWith('/faculty');
+  const isStudentRoute = pathname.startsWith('/student');
+  const isProtectedRoute = isAdminRoute || isFacultyRoute || isStudentRoute;
+
+  // In production (demo mode disabled), enforce strict session and role protection
+  if (!isDemoMode && isProtectedRoute) {
+    if (!user) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const metadataRole = (user.user_metadata?.role || user.app_metadata?.role || '').toUpperCase();
+
+    // /admin/* requires ADMIN role
+    if (isAdminRoute && metadataRole && metadataRole !== 'ADMIN') {
+      const redirectPath = metadataRole === 'FACULTY' ? '/faculty/dashboard' : '/student/dashboard';
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+
+    // /faculty/* requires FACULTY or ADMIN role
+    if (isFacultyRoute && metadataRole === 'STUDENT') {
+      return NextResponse.redirect(new URL('/student/dashboard', request.url));
+    }
+  }
+
+  // If authenticated user visits /login or /signup, redirect them to intended or role dashboard
+  if (!isDemoMode && (pathname === '/login' || pathname === '/signup') && user) {
+    const redirectTo = searchParams.get('redirectTo');
+    if (isSafeRedirect(redirectTo)) {
+      return NextResponse.redirect(new URL(redirectTo!, request.url));
+    }
+    const role = (user.user_metadata?.role || 'STUDENT').toUpperCase();
+    const defaultDashboard =
+      role === 'ADMIN' ? '/admin/dashboard' : role === 'FACULTY' ? '/faculty/dashboard' : '/student/dashboard';
+    return NextResponse.redirect(new URL(defaultDashboard, request.url));
   }
 
   return response;

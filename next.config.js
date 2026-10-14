@@ -1,6 +1,17 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
+  swcMinify: true,
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      'framer-motion',
+      'clsx',
+      'tailwind-merge',
+      'canvas-confetti',
+      'qrcode.react',
+    ],
+  },
   images: {
     domains: ['images.unsplash.com', 'illustrations.pouch.dev', 'ui-avatars.com'],
   },

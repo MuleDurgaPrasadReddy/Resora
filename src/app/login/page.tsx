@@ -34,8 +34,9 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        // Fallback for demo users if email ends in .demo or password is demo
-        if (email.includes('.demo') || password === '••••••••••••') {
+        // Fallback for demo users if demo mode is active and email ends in .demo or password is demo
+        const isDemo = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+        if (isDemo && (email.includes('.demo') || password === '••••••••••••')) {
           setRole(selectedRole);
           const demoUser = {
             id: selectedRole === 'FACULTY' ? 'fac_01' : selectedRole === 'ADMIN' ? 'adm_01' : 'stu_01',
@@ -64,12 +65,11 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Sync Supabase user with Prisma server-side to resolve exact Prisma role (passing selectedRole)
+        // Sync Supabase user with Prisma server-side to resolve exact Prisma role (no client role override)
         const prismaUser = await syncSupabaseUserWithPrismaServer(
           data.user.id,
           data.user.email!,
-          data.user.user_metadata?.name,
-          selectedRole
+          data.user.user_metadata?.name
         );
 
         setRole(prismaUser.role);
@@ -94,40 +94,66 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       const targetDashboard = `/${selectedRole.toLowerCase()}/dashboard`;
-      const { error: googleError } = await supabase.auth.signInWithOAuth({
+      const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}${targetDashboard}`,
+          skipBrowserRedirect: true,
         },
       });
 
-      if (googleError) {
-        // Fallback demo redirect
-        setRole(selectedRole);
-        const demoUser = {
-          id: selectedRole === 'FACULTY' ? 'fac_01' : selectedRole === 'ADMIN' ? 'adm_01' : 'stu_01',
-          email: `${selectedRole.toLowerCase()}@resora.demo`,
-          name: selectedRole === 'FACULTY' ? 'Dr. S. Rao' : selectedRole === 'ADMIN' ? 'System Admin' : 'Alex Rivera',
-          role: selectedRole,
-          avatar: selectedRole === 'FACULTY'
-            ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200'
-            : selectedRole === 'ADMIN'
-            ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
-            : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-          department: 'CSE',
-          title: selectedRole === 'ADMIN' ? 'System Administrator' : selectedRole === 'FACULTY' ? 'CSE · Faculty Lead' : 'CSE · 3rd Year',
-        };
-        if (setCurrentUser) setCurrentUser(demoUser);
+      if (oauthError) {
+        throw new Error(oauthError.message);
+      }
 
-        if (selectedRole === 'STUDENT') router.push('/student/dashboard');
-        else if (selectedRole === 'FACULTY') router.push('/faculty/dashboard');
-        else router.push('/admin/dashboard');
+      if (oauthData?.url) {
+        // Pre-flight check: probe authorization endpoint to detect if Google OAuth is configured in Supabase
+        try {
+          const preflight = await fetch(oauthData.url);
+          if (!preflight.ok) {
+            const errBody = await preflight.json().catch(() => null);
+            if (errBody?.msg?.includes('provider is not enabled') || errBody?.error_code === 'validation_failed') {
+              // Google OAuth is not enabled in the Supabase project dashboard
+              const isDemo = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+              if (isDemo) {
+                // Seamless simulated fallback in demo mode
+                setRole(selectedRole);
+                const demoUser = {
+                  id: selectedRole === 'FACULTY' ? 'fac_01' : selectedRole === 'ADMIN' ? 'adm_01' : 'stu_01',
+                  email: `${selectedRole.toLowerCase()}.google@resora.demo`,
+                  name: selectedRole === 'FACULTY' ? 'Dr. S. Rao (Google)' : selectedRole === 'ADMIN' ? 'System Admin (Google)' : 'Alex Rivera (Google)',
+                  role: selectedRole,
+                  avatar: selectedRole === 'FACULTY'
+                    ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200'
+                    : selectedRole === 'ADMIN'
+                    ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
+                    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+                  department: 'CSE',
+                  title: selectedRole === 'ADMIN' ? 'System Administrator' : selectedRole === 'FACULTY' ? 'CSE · Faculty Lead' : 'CSE · 3rd Year',
+                };
+                if (setCurrentUser) setCurrentUser(demoUser);
+
+                if (selectedRole === 'STUDENT') router.push('/student/dashboard');
+                else if (selectedRole === 'FACULTY') router.push('/faculty/dashboard');
+                else router.push('/admin/dashboard');
+                return;
+              } else {
+                setError(
+                  'Google OAuth is not enabled in your Supabase project dashboard (Authentication > Providers > Google). Please enable it with your Google Client ID/Secret, or use email / 1-click demo login below.'
+                );
+                return;
+              }
+            }
+          }
+        } catch (checkErr) {
+          // If preflight check is blocked by CORS, proceed with browser redirect
+        }
+
+        // Provider is enabled on Supabase; proceed with standard Google OAuth redirect
+        window.location.href = oauthData.url;
       }
     } catch (err: any) {
-      setRole(selectedRole);
-      if (selectedRole === 'STUDENT') router.push('/student/dashboard');
-      else if (selectedRole === 'FACULTY') router.push('/faculty/dashboard');
-      else router.push('/admin/dashboard');
+      setError(err.message || 'Google authentication error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -340,35 +366,42 @@ export default function LoginPage() {
               <span>Continue with Google</span>
             </button>
 
-            {/* Quick Demo Credentials Buttons */}
-            <div className="mt-6 pt-6 border-t border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-400 block mb-2 text-center uppercase tracking-wider">
-                1-Click Demo Login Shortcuts
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('STUDENT')}
-                  className="p-2 border border-slate-200 hover:border-brand-500 bg-slate-50 hover:bg-brand-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
-                >
-                  Student Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('FACULTY')}
-                  className="p-2 border border-slate-200 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
-                >
-                  Faculty Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('ADMIN')}
-                  className="p-2 border border-slate-200 hover:border-purple-500 bg-slate-50 hover:bg-purple-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
-                >
-                  Admin Demo
-                </button>
+            {/* Quick Demo Credentials Buttons (Disabled in production unless NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true') */}
+            {process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true' && (
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Demo Mode Enabled
+                  </span>
+                  <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    Simulated UI Only
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo('STUDENT')}
+                    className="p-2 border border-slate-200 hover:border-brand-500 bg-slate-50 hover:bg-brand-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
+                  >
+                    Student Demo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo('FACULTY')}
+                    className="p-2 border border-slate-200 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
+                  >
+                    Faculty Demo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo('ADMIN')}
+                    className="p-2 border border-slate-200 hover:border-purple-500 bg-slate-50 hover:bg-purple-50 rounded-xl text-[11px] font-semibold text-slate-700 text-center transition-all"
+                  >
+                    Admin Demo
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="mt-6 text-center text-xs text-slate-500">

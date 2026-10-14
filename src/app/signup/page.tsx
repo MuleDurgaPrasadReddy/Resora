@@ -13,7 +13,6 @@ export default function SignupPage() {
   const router = useRouter();
   const { setRole, setCurrentUser } = useResora();
 
-  const [selectedRole, setSelectedRole] = useState<UserRole>('STUDENT');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,7 +57,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          data: { name, role: selectedRole },
+          data: { name, role: 'STUDENT' },
         },
       });
 
@@ -69,22 +68,19 @@ export default function SignupPage() {
       }
 
       if (data.user) {
-        // Sync new user with Prisma (passing selectedRole)
+        // Sync new user with Prisma (secure self-service provisioning as STUDENT)
         const prismaUser = await syncSupabaseUserWithPrismaServer(
           data.user.id,
           data.user.email!,
-          name,
-          selectedRole
+          name
         );
 
-        setRole(prismaUser.role);
+        setRole('STUDENT');
         if (setCurrentUser) setCurrentUser(prismaUser);
 
-        setSuccessMsg(`Account created successfully as ${prismaUser.role}! Redirecting...`);
+        setSuccessMsg(`Account created successfully as Student! Redirecting to dashboard...`);
         setTimeout(() => {
-          if (prismaUser.role === 'STUDENT') router.push('/student/dashboard');
-          else if (prismaUser.role === 'FACULTY') router.push('/faculty/dashboard');
-          else router.push('/admin/dashboard');
+          router.push('/student/dashboard');
         }, 1200);
       }
     } catch (err: any) {
@@ -111,46 +107,20 @@ export default function SignupPage() {
             <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
             <p className="text-xs text-slate-500 mt-1">Join the smart campus intelligence ecosystem</p>
 
-            {/* Role Selector Segmented Switcher */}
-            <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200 mt-6">
-              <button
-                type="button"
-                onClick={() => setSelectedRole('STUDENT')}
-                className={`py-2 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
-                  selectedRole === 'STUDENT'
-                    ? 'bg-white text-brand-600 shadow-sm font-bold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Student</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedRole('FACULTY')}
-                className={`py-2 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
-                  selectedRole === 'FACULTY'
-                    ? 'bg-white text-emerald-600 shadow-sm font-bold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Faculty</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedRole('ADMIN')}
-                className={`py-2 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
-                  selectedRole === 'ADMIN'
-                    ? 'bg-white text-purple-600 shadow-sm font-bold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
+            {/* Student Account Role Badge */}
+            <div className="mt-6 p-3 bg-brand-50 border border-brand-200/70 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0">
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-brand-900">Student Account</div>
+                  <div className="text-[11px] text-brand-700/80">Self-service registration provisions standard student access</div>
+                </div>
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-brand-200/60 text-brand-800 rounded-md">
+                Standard
+              </span>
             </div>
 
             {/* Error Alert */}
@@ -179,7 +149,7 @@ export default function SignupPage() {
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder={selectedRole === 'FACULTY' ? 'Dr. S. Rao' : selectedRole === 'ADMIN' ? 'Admin User' : 'Aryan Reddy'}
+                    placeholder="Aryan Reddy"
                     required
                     className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-slate-800"
                   />
@@ -194,7 +164,7 @@ export default function SignupPage() {
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder={selectedRole === 'FACULTY' ? 'faculty@resora.edu' : selectedRole === 'ADMIN' ? 'admin@resora.edu' : 'student@resora.edu'}
+                    placeholder="student@resora.edu"
                     required
                     className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-slate-800"
                   />
@@ -238,7 +208,7 @@ export default function SignupPage() {
                   loading ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
-                <span>{loading ? 'Creating Account...' : `Register as ${selectedRole}`}</span>
+                <span>{loading ? 'Creating Account...' : 'Create Student Account'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

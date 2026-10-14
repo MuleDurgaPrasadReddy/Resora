@@ -434,7 +434,7 @@ function PreparationContent() {
     setTimeout(() => {
       const botReply = `🤖 **Smart Analysis:** Based on your current stats (Placement Readiness: 72%, Exam Readiness: 68%), we recommend focusing on DBMS Normalization and DSA Graphs to reach 85%+!`;
       setAssistantChatHistory([...newHistory, { sender: 'BOT' as const, text: botReply }]);
-    }, 400);
+    }, 60);
   };
 
   const filteredCodingProblems = codingProblems.filter(p => {

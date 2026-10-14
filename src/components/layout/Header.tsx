@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useResora } from '@/context/ResoraContext';
+import { DEMO_USERS } from '@/lib/mockData';
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const router = useRouter();
   const { currentUser, notifications, logout } = useResora();
+  const user = currentUser || DEMO_USERS.STUDENT;
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -65,13 +67,15 @@ export const Header: React.FC = () => {
             className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-slate-800">{currentUser.name}</p>
-              <p className="text-[10px] text-slate-500 capitalize">{currentUser.role.toLowerCase()}</p>
+              <p className="text-xs font-semibold text-slate-800">{user.name}</p>
+              <p className="text-[10px] text-slate-500 capitalize">{user.role.toLowerCase()}</p>
             </div>
             <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover border border-slate-200"
+              src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
+              alt={user.name}
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
             />
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
@@ -79,10 +83,10 @@ export const Header: React.FC = () => {
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-card p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="px-3 py-2 border-b border-slate-100">
-                <p className="text-xs font-bold text-slate-900">{currentUser.name}</p>
-                <p className="text-[10px] text-slate-500">{currentUser.email}</p>
+                <p className="text-xs font-bold text-slate-900">{user.name}</p>
+                <p className="text-[10px] text-slate-500">{user.email}</p>
                 <span className="inline-block mt-1 text-[9px] font-bold px-2 py-0.5 bg-brand-50 text-brand-600 rounded">
-                  {currentUser.role}
+                  {user.role}
                 </span>
               </div>
 

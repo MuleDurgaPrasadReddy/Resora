@@ -8,6 +8,7 @@ import { useResora } from '@/context/ResoraContext';
 import { StatusBadge } from '@/components/common/Badge';
 import { MultiStepBookingModal } from '@/components/booking/MultiStepBookingModal';
 import { Resource } from '@/types';
+import { TakePermissionForm } from '@/components/permissions/TakePermissionForm';
 import {
   Search,
   Sparkles,
@@ -18,13 +19,26 @@ import {
   Wifi,
   Cpu,
   Projector,
-  X
+  X,
+  Building2,
+  Compass,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function StudentResourcesPage() {
-  const { resources, parseSmartQuery } = useResora();
+  const { resources, parseSmartQuery, leavePermissions } = useResora();
+  const [activeTab, setActiveTab] = useState<'LAB_BOOKINGS' | 'LEAVE_PERMISSIONS'>('LAB_BOOKINGS');
   const [selectedType, setSelectedType] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'permissions' || params.get('tab') === 'leave') {
+        setActiveTab('LEAVE_PERMISSIONS');
+      }
+    }
+  }, []);
 
   // AI Smart Finder State
   const [isAiModeActive, setIsAiModeActive] = useState(false);
@@ -114,29 +128,81 @@ export default function StudentResourcesPage() {
           {/* Header Title Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 font-heading flex items-center gap-2">
-                <span>Explore Campus Resources</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200">
-                  AI-Powered
+              <div className="flex items-center space-x-2 mb-1">
+                <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">
+                  Campus Facilities & Clearances
                 </span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold border border-purple-200">
+                  Bookings & Permissions
+                </span>
+              </div>
+              <h1 className="text-2xl font-extrabold text-slate-900 font-heading">
+                Bookings & Permissions Hub
               </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Browse labs, study rooms, microcontrollers, projectors, and compute nodes with AI Smart Match
+              <p className="text-xs text-slate-500 mt-0.5">
+                Reserve campus labs & hardware, or apply for afternoon leaves and digital QR gate outpasses.
               </p>
             </div>
 
-            {!isAiModeActive && (
-              <button
-                onClick={() => handleRunAiMatch()}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shadow-md"
-              >
-                <Sparkles className="w-4 h-4 text-purple-200" />
-                <span>Activate AI Smart Match</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {activeTab === 'LAB_BOOKINGS' && !isAiModeActive && (
+                <button
+                  onClick={() => handleRunAiMatch()}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shadow-md"
+                >
+                  <Sparkles className="w-4 h-4 text-purple-200" />
+                  <span>Activate AI Smart Match</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* AI Smart Finder Engine Banner */}
+          {/* Top-Level Tabs Switcher */}
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-2">
+            <button
+              onClick={() => setActiveTab('LAB_BOOKINGS')}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+                activeTab === 'LAB_BOOKINGS'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>Lab & Facility Bookings</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === 'LAB_BOOKINGS' ? 'bg-purple-700 text-purple-100' : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                {resources.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('LEAVE_PERMISSIONS')}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+                activeTab === 'LEAVE_PERMISSIONS'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+            >
+              <Compass className="w-4 h-4" />
+              <span>Take Permission / Outpass</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === 'LEAVE_PERMISSIONS' ? 'bg-purple-700 text-purple-100' : 'bg-purple-100 text-purple-800'
+                }`}
+              >
+                Apply
+              </span>
+            </button>
+          </div>
+
+          {activeTab === 'LEAVE_PERMISSIONS' ? (
+            <TakePermissionForm />
+          ) : (
+            <>
+              {/* AI Smart Finder Engine Banner */}
           <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 rounded-3xl p-6 text-white relative overflow-hidden shadow-card border border-purple-900/50">
             <div className="relative z-10 space-y-4">
               <div className="flex items-center justify-between">
@@ -417,6 +483,8 @@ export default function StudentResourcesPage() {
               </div>
             ))}
           </div>
+            </>
+          )}
         </main>
       </div>
 

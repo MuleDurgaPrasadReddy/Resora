@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { useResora } from '@/context/ResoraContext';
+import { DEMO_USERS } from '@/lib/mockData';
 import { UserRole } from '@/types';
 import { Shield, UserCheck, GraduationCap, CheckCircle2, ChevronRight, Play, RefreshCw } from 'lucide-react';
 
 export const DemoBar: React.FC = () => {
   const { currentUser, setRole } = useResora();
+  const user = currentUser || DEMO_USERS.STUDENT;
   const [showGuide, setShowGuide] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -21,18 +23,26 @@ export const DemoBar: React.FC = () => {
     { step: 8, role: 'ADMIN', path: '/admin/maintenance', title: '8. Maintenance Engine', text: 'Mark Projector #07 under maintenance; conflict engine automatically blocks bookings!' },
   ];
 
+  // In production, DemoBar is disabled by default unless explicitly enabled via NEXT_PUBLIC_ENABLE_DEMO_MODE='true'
+  if (process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE !== 'true') {
+    return null;
+  }
+
   return (
     <div className="bg-slate-900 border-b border-slate-800 text-white text-xs py-2 px-4 sticky top-0 z-50 flex flex-wrap items-center justify-between shadow-md">
       <div className="flex items-center space-x-3">
-        <span className="inline-flex items-center px-2 py-0.5 rounded font-semibold bg-brand-500 text-white uppercase tracking-wider text-[10px]">
-          Demo Mode
+        <span 
+          className="inline-flex items-center px-2 py-0.5 rounded font-semibold bg-amber-500 text-slate-950 uppercase tracking-wider text-[10px]"
+          title="Simulated UI view only. Does not grant persistent server authorization."
+        >
+          Simulated Demo UI
         </span>
-        <span className="hidden sm:inline text-slate-300">Switch role instantly:</span>
+        <span className="hidden sm:inline text-slate-300">Switch simulated view:</span>
         <div className="flex space-x-1 bg-slate-800 p-0.5 rounded-lg border border-slate-700">
           <button
             onClick={() => setRole('STUDENT')}
             className={`flex items-center space-x-1.5 px-3 py-1 rounded-md transition-all ${
-              currentUser.role === 'STUDENT'
+              user.role === 'STUDENT'
                 ? 'bg-brand-600 text-white font-medium shadow-sm'
                 : 'text-slate-400 hover:text-white hover:bg-slate-700'
             }`}
@@ -44,7 +54,7 @@ export const DemoBar: React.FC = () => {
           <button
             onClick={() => setRole('FACULTY')}
             className={`flex items-center space-x-1.5 px-3 py-1 rounded-md transition-all ${
-              currentUser.role === 'FACULTY'
+              user.role === 'FACULTY'
                 ? 'bg-emerald-600 text-white font-medium shadow-sm'
                 : 'text-slate-400 hover:text-white hover:bg-slate-700'
             }`}
@@ -56,7 +66,7 @@ export const DemoBar: React.FC = () => {
           <button
             onClick={() => setRole('ADMIN')}
             className={`flex items-center space-x-1.5 px-3 py-1 rounded-md transition-all ${
-              currentUser.role === 'ADMIN'
+              user.role === 'ADMIN'
                 ? 'bg-purple-600 text-white font-medium shadow-sm'
                 : 'text-slate-400 hover:text-white hover:bg-slate-700'
             }`}
@@ -78,7 +88,7 @@ export const DemoBar: React.FC = () => {
 
         <span className="text-slate-500">|</span>
         <span className="text-slate-400 font-mono text-[11px] hidden md:inline">
-          Active: <strong className="text-white">{currentUser.name}</strong> ({currentUser.email})
+          Active: <strong className="text-white">{user.name}</strong> ({user.email})
         </span>
       </div>
 

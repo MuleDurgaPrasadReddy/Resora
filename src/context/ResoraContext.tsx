@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserRole, User, Resource, Booking, MaintenanceIssue, AuditLog, Opportunity, OpportunityRecommendation, StudentProject, BookingStatus, IssueStatus } from '@/types';
-import { DEMO_USERS, MOCK_RESOURCES, INITIAL_BOOKINGS, INITIAL_ISSUES, MOCK_OPPORTUNITIES, STUDENT_PROJECTS_LIST, INITIAL_PROGRESS, INITIAL_AUDIT_LOGS } from '@/lib/mockData';
+import { UserRole, User, Resource, Booking, MaintenanceIssue, AuditLog, Opportunity, OpportunityRecommendation, StudentProject, BookingStatus, IssueStatus, LeavePermission, LeaveType, CampusEvent, CampusClub, EventRegistration, ClubMembershipApplication } from '@/types';
+import { DEMO_USERS, MOCK_RESOURCES, INITIAL_BOOKINGS, INITIAL_ISSUES, MOCK_OPPORTUNITIES, STUDENT_PROJECTS_LIST, INITIAL_PROGRESS, INITIAL_AUDIT_LOGS, INITIAL_LEAVE_PERMISSIONS, INITIAL_CAMPUS_CLUBS, INITIAL_CAMPUS_EVENTS, INITIAL_EVENT_REGISTRATIONS } from '@/lib/mockData';
 
 interface SmartMatchResult {
   resource: Resource;
@@ -31,6 +31,20 @@ interface BookingEngineResult {
 
 import { createClient } from '@/lib/supabase/client';
 
+export interface ApplyForLeaveInput {
+  leaveType: LeaveType;
+  leaveTypeLabel: string;
+  reason: string;
+  destination: string;
+  date: string;
+  departureTime: string;
+  expectedReturnTime?: string;
+  isFullDayOrAfternoon: 'AFTERNOON' | 'EARLY_EXIT' | 'FULL_DAY';
+  parentPhone: string;
+  parentName?: string;
+  studentPhone?: string;
+}
+
 interface ResoraContextType {
   currentUser: User;
   setCurrentUser: (user: User) => void;
@@ -38,10 +52,15 @@ interface ResoraContextType {
   logout: () => Promise<void>;
   resources: Resource[];
   bookings: Booking[];
+  leavePermissions: LeavePermission[];
   issues: MaintenanceIssue[];
   auditLogs: AuditLog[];
   opportunities: Opportunity[];
   projects: StudentProject[];
+  campusEvents: CampusEvent[];
+  campusClubs: CampusClub[];
+  eventRegistrations: EventRegistration[];
+  clubApplications: ClubMembershipApplication[];
   progress: typeof INITIAL_PROGRESS;
   notifications: { id: string; title: string; message: string; date: string; read: boolean }[];
 
@@ -51,6 +70,16 @@ interface ResoraContextType {
   rejectBooking: (bookingId: string, reason?: string) => void;
   requestChangesBooking: (bookingId: string, commentNote: string) => void;
   checkInBooking: (bookingCode: string) => { success: boolean; message: string; booking?: Booking };
+  applyForLeave: (input: ApplyForLeaveInput) => { success: boolean; message: string; leave?: LeavePermission };
+  approveLeavePermission: (leaveId: string, remarks?: string) => void;
+  rejectLeavePermission: (leaveId: string, reason: string) => void;
+  requestChangesLeavePermission: (leaveId: string, note: string) => void;
+  registerForEvent: (eventId: string) => { success: boolean; message: string; registration?: EventRegistration };
+  cancelEventRegistration: (registrationId: string) => void;
+  joinClub: (clubId: string) => void;
+  applyForClubRole: (input: { clubId: string; roleApplied: string; statementOfPurpose: string; pastExperience?: string; portfolioOrGithub?: string }) => { success: boolean; message: string };
+  proposeNewEvent: (eventData: Omit<CampusEvent, 'id' | 'registeredCount' | 'registrationStatus' | 'isRegistered'>) => void;
+  proposeNewClub: (clubData: Omit<CampusClub, 'id' | 'memberCount' | 'rating' | 'tier' | 'isJoined'>) => void;
   toggleMaintenance: (resourceId: string, reason?: string) => void;
   resolveIssue: (issueId: string) => void;
   addResource: (resource: Omit<Resource, 'id'>) => void;
@@ -81,10 +110,15 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentUser, setCurrentUser] = useState<User>(DEMO_USERS.STUDENT);
   const [resources, setResources] = useState<Resource[]>(MOCK_RESOURCES);
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
+  const [leavePermissions, setLeavePermissions] = useState<LeavePermission[]>(INITIAL_LEAVE_PERMISSIONS);
   const [issues, setIssues] = useState<MaintenanceIssue[]>(INITIAL_ISSUES);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [opportunities, setOpportunities] = useState<Opportunity[]>(MOCK_OPPORTUNITIES);
   const [projects, setProjects] = useState<StudentProject[]>(STUDENT_PROJECTS_LIST);
+  const [campusEvents, setCampusEvents] = useState<CampusEvent[]>(INITIAL_CAMPUS_EVENTS);
+  const [campusClubs, setCampusClubs] = useState<CampusClub[]>(INITIAL_CAMPUS_CLUBS);
+  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>(INITIAL_EVENT_REGISTRATIONS);
+  const [clubApplications, setClubApplications] = useState<ClubMembershipApplication[]>([]);
   const [progress] = useState(INITIAL_PROGRESS);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -113,22 +147,33 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const parsed = JSON.parse(saved);
         if (parsed.resources) setResources(parsed.resources);
         if (parsed.bookings) setBookings(parsed.bookings);
+        if (parsed.leavePermissions && Array.isArray(parsed.leavePermissions)) {
+          const storedIds = new Set(parsed.leavePermissions.map((l: LeavePermission) => l.id));
+          const missingDefaults = INITIAL_LEAVE_PERMISSIONS.filter(d => !storedIds.has(d.id));
+          setLeavePermissions([...parsed.leavePermissions, ...missingDefaults]);
+        }
         if (parsed.issues) setIssues(parsed.issues);
         if (parsed.auditLogs) setAuditLogs(parsed.auditLogs);
         if (parsed.projects && Array.isArray(parsed.projects)) setProjects(parsed.projects);
         if (parsed.opportunities && Array.isArray(parsed.opportunities)) {
-          const sanitized = parsed.opportunities.map((storedOpp: Opportunity) => {
-            const mock = MOCK_OPPORTUNITIES.find(m => m.id === storedOpp.id);
-            if (mock) {
+          const storedMap = new Map<string, Opportunity>(parsed.opportunities.map((o: Opportunity) => [o.id, o]));
+          const merged = MOCK_OPPORTUNITIES.map(mock => {
+            const stored = storedMap.get(mock.id);
+            if (stored) {
               return {
-                ...storedOpp,
-                applicationUrl: mock.applicationUrl,
-                officialWebsiteUrl: mock.officialWebsiteUrl,
+                ...mock,
+                saved: stored.saved ?? mock.saved,
+                applied: stored.applied ?? mock.applied,
+                recommendations: (stored.recommendations && stored.recommendations.length > 0)
+                  ? stored.recommendations
+                  : mock.recommendations,
               };
             }
-            return storedOpp;
+            return mock;
           });
-          setOpportunities(sanitized);
+          const mockIds = new Set(MOCK_OPPORTUNITIES.map(m => m.id));
+          const extraUserOpps = parsed.opportunities.filter((o: Opportunity) => !mockIds.has(o.id));
+          setOpportunities([...merged, ...extraUserOpps]);
         }
       }
     } catch (e) {
@@ -138,25 +183,30 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
-  // Persist state to localStorage on state changes
+  // Persist state to localStorage on state changes (debounced to avoid blocking UI thread on clicks)
   useEffect(() => {
     if (!isLoaded) return;
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          resources,
-          bookings,
-          issues,
-          auditLogs,
-          opportunities,
-          projects,
-        })
-      );
-    } catch (e) {
-      console.error('Failed to save state to storage', e);
-    }
-  }, [resources, bookings, issues, auditLogs, opportunities, isLoaded]);
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            resources,
+            bookings,
+            leavePermissions,
+            issues,
+            auditLogs,
+            opportunities,
+            projects,
+          })
+        );
+      } catch (e) {
+        console.error('Failed to save state to storage', e);
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [resources, bookings, leavePermissions, issues, auditLogs, opportunities, isLoaded]);
 
   // Real-time Cross-Tab & Window State Synchronization
   useEffect(() => {
@@ -166,6 +216,7 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const parsed = JSON.parse(e.newValue);
           if (parsed.resources) setResources(parsed.resources);
           if (parsed.bookings) setBookings(parsed.bookings);
+          if (parsed.leavePermissions) setLeavePermissions(parsed.leavePermissions);
           if (parsed.issues) setIssues(parsed.issues);
           if (parsed.auditLogs) setAuditLogs(parsed.auditLogs);
           if (parsed.projects && Array.isArray(parsed.projects)) setProjects(parsed.projects);
@@ -180,9 +231,26 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const setRole = (role: UserRole) => {
-    setCurrentRole(role);
-    setCurrentUser(DEMO_USERS[role]);
+  const setRole = (role: UserRole | string) => {
+    const normalizedRole = (role ? role.toString().toUpperCase() : 'STUDENT') as UserRole;
+    setCurrentRole(normalizedRole);
+    const demoUser = DEMO_USERS[normalizedRole] || DEMO_USERS.STUDENT;
+    setCurrentUser(demoUser);
+  };
+
+  const safeSetCurrentUser = (user: User) => {
+    if (!user) {
+      setCurrentUser(DEMO_USERS.STUDENT);
+      return;
+    }
+    const safeRole = (user.role ? (user.role as string).toUpperCase() : 'STUDENT') as UserRole;
+    const fallbackUser = DEMO_USERS[safeRole] || DEMO_USERS.STUDENT;
+    setCurrentUser({
+      ...fallbackUser,
+      ...user,
+      role: safeRole,
+    });
+    setCurrentRole(safeRole);
   };
 
   const logout = async () => {
@@ -198,11 +266,12 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Helper to log audit actions
   const logAudit = (action: string, resource: string, status: string, details?: string) => {
+    const activeUser = currentUser || DEMO_USERS.STUDENT;
     const newLog: AuditLog = {
       id: `log_${Date.now()}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      user: currentUser.name,
-      role: currentUser.role,
+      user: activeUser.name,
+      role: activeUser.role,
       action,
       resource,
       status,
@@ -411,6 +480,312 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       message: `Check-in Verified! ${booking.userName} checked into ${booking.resourceName} successfully.`,
       booking,
     };
+  };
+
+  const applyForLeave = (input: ApplyForLeaveInput) => {
+    const passCode = `OUT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newLeave: LeavePermission = {
+      id: `leave_${Date.now()}`,
+      passCode,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      rollNumber: currentUser.rollNumber || 'CSE-2023-042',
+      department: currentUser.department || 'CSE',
+      academicYear: currentUser.academicYear || 3,
+      academicYearLabel: currentUser.academicYearLabel || '3rd Year',
+      studentPhone: input.studentPhone || '+91 98765 11223',
+      parentPhone: input.parentPhone,
+      parentName: input.parentName,
+      leaveType: input.leaveType,
+      leaveTypeLabel: input.leaveTypeLabel,
+      reason: input.reason,
+      destination: input.destination,
+      date: input.date,
+      departureTime: input.departureTime,
+      expectedReturnTime: input.expectedReturnTime || 'Not Returning (Going Home)',
+      isFullDayOrAfternoon: input.isFullDayOrAfternoon,
+      status: 'PENDING',
+      requestedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' today',
+    };
+
+    setLeavePermissions(prev => [newLeave, ...prev]);
+
+    logAudit(
+      `Requested Leave Permission #${passCode}`,
+      `Campus Outpass (${input.leaveTypeLabel})`,
+      'Pending',
+      `Date: ${input.date}, Departure: ${input.departureTime}, Reason: ${input.reason}`
+    );
+
+    return {
+      success: true,
+      message: `Leave permission application #${passCode} submitted successfully to faculty advisor for review.`,
+      leave: newLeave,
+    };
+  };
+
+  const approveLeavePermission = (leaveId: string, remarks?: string) => {
+    setLeavePermissions(prev =>
+      prev.map(l => {
+        if (l.id === leaveId) {
+          const approvedRemarks = remarks || 'Approved for campus departure.';
+          const qrPass = `PASS-RESORA-${l.passCode}-SEC`;
+          logAudit(`Approved Leave Outpass #${l.passCode}`, `Gate Pass (${l.userName})`, 'Approved', approvedRemarks);
+
+          setNotifications(n => [
+            {
+              id: `notif_${Date.now()}`,
+              title: `Leave Outpass #${l.passCode} Approved!`,
+              message: `Your permission to leave campus at ${l.departureTime} has been approved by ${currentUser.name}. Your digital QR gate pass is ready.`,
+              date: 'Just now',
+              read: false,
+            },
+            ...n,
+          ]);
+
+          return {
+            ...l,
+            status: 'APPROVED' as const,
+            approvedByFacultyId: currentUser.id,
+            approvedByFacultyName: currentUser.name,
+            approvedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' today',
+            approvalRemarks: approvedRemarks,
+            qrPassCode: qrPass,
+            qrIssuedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' today',
+            validGate: 'Campus Main Gate & Gate 2',
+          };
+        }
+        return l;
+      })
+    );
+  };
+
+  const rejectLeavePermission = (leaveId: string, reason: string) => {
+    setLeavePermissions(prev =>
+      prev.map(l => {
+        if (l.id === leaveId) {
+          logAudit(`Rejected Leave Outpass #${l.passCode}`, `Gate Pass (${l.userName})`, 'Rejected', reason);
+
+          setNotifications(n => [
+            {
+              id: `notif_${Date.now()}`,
+              title: `Leave Outpass #${l.passCode} Rejected`,
+              message: `Reason: ${reason}`,
+              date: 'Just now',
+              read: false,
+            },
+            ...n,
+          ]);
+
+          return {
+            ...l,
+            status: 'REJECTED' as const,
+            rejectionReason: reason,
+          };
+        }
+        return l;
+      })
+    );
+  };
+
+  const requestChangesLeavePermission = (leaveId: string, note: string) => {
+    setLeavePermissions(prev =>
+      prev.map(l => {
+        if (l.id === leaveId) {
+          logAudit(`Requested Clarification for Leave #${l.passCode}`, `Gate Pass (${l.userName})`, 'Changes Requested', note);
+
+          setNotifications(n => [
+            {
+              id: `notif_${Date.now()}`,
+              title: `Action Required: Leave Outpass #${l.passCode}`,
+              message: `Faculty Note: ${note}`,
+              date: 'Just now',
+              read: false,
+            },
+            ...n,
+          ]);
+
+          return {
+            ...l,
+            status: 'CHANGES_REQUESTED' as const,
+            requestChangesNote: note,
+          };
+        }
+        return l;
+      })
+    );
+  };
+
+  const registerForEvent = (eventId: string) => {
+    const event = campusEvents.find(e => e.id === eventId);
+    if (!event) return { success: false, message: 'Event not found.' };
+
+    const existing = eventRegistrations.find(r => r.eventId === eventId && r.rollNumber === (currentUser.rollNumber || 'CSE-2023-042'));
+    if (existing) {
+      return { success: false, message: 'You have already registered for this event!' };
+    }
+
+    const ticketCode = `TKT-${event.clubName.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newReg: EventRegistration = {
+      id: `reg_${Date.now()}`,
+      ticketCode,
+      eventId: event.id,
+      eventTitle: event.title,
+      clubName: event.clubName,
+      date: event.date,
+      time: event.time,
+      venue: event.venue,
+      studentName: currentUser.name,
+      rollNumber: currentUser.rollNumber || 'CSE-2023-042',
+      department: `${currentUser.department || 'CSE'} (${currentUser.academicYearLabel || '3rd Year'})`,
+      registeredAt: new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ' · Just now',
+      isOdApproved: event.isOdApproved,
+      status: 'CONFIRMED',
+      qrPayload: `RESORA-EVENT-${ticketCode}-${currentUser.rollNumber || 'CSE-2023-042'}`,
+    };
+
+    setEventRegistrations(prev => [newReg, ...prev]);
+    setCampusEvents(prev =>
+      prev.map(e =>
+        e.id === eventId
+          ? {
+              ...e,
+              registeredCount: e.registeredCount + 1,
+              isRegistered: true,
+              userTicketId: ticketCode,
+            }
+          : e
+      )
+    );
+
+    setNotifications(n => [
+      {
+        id: `notif_${Date.now()}`,
+        title: 'Event Ticket Confirmed 🎟️',
+        message: `You are registered for "${event.title}". Ticket #${ticketCode} is ready with entry QR pass!`,
+        date: 'Just now',
+        read: false,
+      },
+      ...n,
+    ]);
+
+    logAudit(`Registered for Event #${ticketCode}`, event.title, 'Confirmed', `Attendee: ${currentUser.name}`);
+
+    return { success: true, message: `Registration confirmed! Your entry ticket #${ticketCode} is ready.`, registration: newReg };
+  };
+
+  const cancelEventRegistration = (registrationId: string) => {
+    const reg = eventRegistrations.find(r => r.id === registrationId);
+    if (!reg) return;
+
+    setEventRegistrations(prev => prev.filter(r => r.id !== registrationId));
+    setCampusEvents(prev =>
+      prev.map(e =>
+        e.id === reg.eventId
+          ? {
+              ...e,
+              registeredCount: Math.max(0, e.registeredCount - 1),
+              isRegistered: false,
+              userTicketId: undefined,
+            }
+          : e
+      )
+    );
+
+    setNotifications(n => [
+      {
+        id: `notif_${Date.now()}`,
+        title: 'Event Registration Cancelled',
+        message: `Your ticket for "${reg.eventTitle}" has been cancelled.`,
+        date: 'Just now',
+        read: false,
+      },
+      ...n,
+    ]);
+  };
+
+  const joinClub = (clubId: string) => {
+    setCampusClubs(prev =>
+      prev.map(c => {
+        if (c.id === clubId) {
+          const newJoined = !c.isJoined;
+          return {
+            ...c,
+            isJoined: newJoined,
+            memberCount: newJoined ? c.memberCount + 1 : Math.max(1, c.memberCount - 1),
+            userRole: newJoined ? 'Active Member' : undefined,
+          };
+        }
+        return c;
+      })
+    );
+  };
+
+  const applyForClubRole = (input: { clubId: string; roleApplied: string; statementOfPurpose: string; pastExperience?: string; portfolioOrGithub?: string }) => {
+    const club = campusClubs.find(c => c.id === input.clubId);
+    if (!club) return { success: false, message: 'Club not found' };
+
+    const newApp: ClubMembershipApplication = {
+      id: `app_${Date.now()}`,
+      clubId: input.clubId,
+      clubName: club.name,
+      studentName: currentUser.name,
+      rollNumber: currentUser.rollNumber || 'CSE-2023-042',
+      academicYear: currentUser.academicYearLabel || '3rd Year',
+      department: currentUser.department || 'CSE',
+      roleApplied: input.roleApplied,
+      statementOfPurpose: input.statementOfPurpose,
+      pastExperience: input.pastExperience,
+      portfolioOrGithub: input.portfolioOrGithub,
+      submittedAt: new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: 'SUBMITTED',
+    };
+
+    setClubApplications(prev => [newApp, ...prev]);
+    setCampusClubs(prev =>
+      prev.map(c =>
+        c.id === input.clubId ? { ...c, isJoined: true, userRole: `Applicant: ${input.roleApplied}` } : c
+      )
+    );
+
+    setNotifications(n => [
+      {
+        id: `notif_${Date.now()}`,
+        title: 'Club Application Submitted 📝',
+        message: `Your application for "${input.roleApplied}" at ${club.shortCode} has been submitted for review.`,
+        date: 'Just now',
+        read: false,
+      },
+      ...n,
+    ]);
+
+    return { success: true, message: `Application submitted successfully to ${club.name}!` };
+  };
+
+  const proposeNewEvent = (eventData: Omit<CampusEvent, 'id' | 'registeredCount' | 'registrationStatus' | 'isRegistered'>) => {
+    const newEvent: CampusEvent = {
+      ...eventData,
+      id: `evt_${Date.now()}`,
+      registeredCount: 0,
+      registrationStatus: 'OPEN',
+      isRegistered: false,
+    };
+    setCampusEvents(prev => [newEvent, ...prev]);
+    logAudit(`Proposed Campus Event`, newEvent.title, 'Proposed', `Organizer: ${currentUser.name}`);
+  };
+
+  const proposeNewClub = (clubData: Omit<CampusClub, 'id' | 'memberCount' | 'rating' | 'tier' | 'isJoined'>) => {
+    const newClub: CampusClub = {
+      ...clubData,
+      id: `club_${Date.now()}`,
+      memberCount: 1,
+      rating: 5.0,
+      tier: 'STUDENT_INITIATIVE',
+      isJoined: true,
+      userRole: 'Founder / President',
+    };
+    setCampusClubs(prev => [newClub, ...prev]);
+    logAudit(`Proposed New Student Club`, newClub.name, 'Proposed', `Founder: ${currentUser.name}`);
   };
 
   const toggleMaintenance = (resourceId: string, reason?: string) => {
@@ -731,44 +1106,74 @@ export const ResoraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return { extractedRequirements, matches };
   };
 
+  const contextValue = React.useMemo<ResoraContextType>(() => ({
+    currentUser: currentUser || DEMO_USERS.STUDENT,
+    setCurrentUser: safeSetCurrentUser,
+    setRole,
+    logout,
+    resources,
+    bookings,
+    leavePermissions,
+    issues,
+    auditLogs,
+    opportunities,
+    projects,
+    campusEvents,
+    campusClubs,
+    eventRegistrations,
+    clubApplications,
+    progress,
+    notifications,
+    createBooking,
+    approveBooking,
+    rejectBooking,
+    requestChangesBooking,
+    checkInBooking,
+    applyForLeave,
+    approveLeavePermission,
+    rejectLeavePermission,
+    requestChangesLeavePermission,
+    registerForEvent,
+    cancelEventRegistration,
+    joinClub,
+    applyForClubRole,
+    proposeNewEvent,
+    proposeNewClub,
+    toggleMaintenance,
+    resolveIssue,
+    addResource,
+    updateResource,
+    enableResourceSharing,
+    toggleSaveOpportunity,
+    applyToOpportunity,
+    addOpportunity,
+    updateOpportunity,
+    deleteOpportunity,
+    recommendOpportunity,
+    removeRecommendation,
+    updateRecommendationMessage,
+    addProject,
+    deleteProject,
+    parseSmartQuery,
+  }), [
+    currentUser,
+    resources,
+    bookings,
+    leavePermissions,
+    issues,
+    auditLogs,
+    opportunities,
+    projects,
+    campusEvents,
+    campusClubs,
+    eventRegistrations,
+    clubApplications,
+    progress,
+    notifications,
+  ]);
+
   return (
-    <ResoraContext.Provider
-      value={{
-        currentUser,
-        setCurrentUser,
-        setRole,
-        logout,
-        resources,
-        bookings,
-        issues,
-        auditLogs,
-        opportunities,
-        projects,
-        progress,
-        notifications,
-        createBooking,
-        approveBooking,
-        rejectBooking,
-        requestChangesBooking,
-        checkInBooking,
-        toggleMaintenance,
-        resolveIssue,
-        addResource,
-        updateResource,
-        enableResourceSharing,
-        toggleSaveOpportunity,
-        applyToOpportunity,
-        addOpportunity,
-        updateOpportunity,
-        deleteOpportunity,
-        recommendOpportunity,
-        removeRecommendation,
-        updateRecommendationMessage,
-        addProject,
-        deleteProject,
-        parseSmartQuery,
-      }}
-    >
+    <ResoraContext.Provider value={contextValue}>
       {children}
     </ResoraContext.Provider>
   );
